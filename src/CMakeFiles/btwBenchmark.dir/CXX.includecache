@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/mehdi/Nextcloud/recherche/code_buss/temp_betweenness_1.0/src/algorithms.cpp
+algorithms.h
+/home/mehdi/Nextcloud/recherche/code_buss/temp_betweenness_1.0/src/algorithms.h
+algorithm
+-
+numeric
+-
+queue
+-
+unordered_set
+-
+
+/home/mehdi/Nextcloud/recherche/code_buss/temp_betweenness_1.0/src/algorithms.h
+utility
+-
+vector
+-
+graph.h
+/home/mehdi/Nextcloud/recherche/code_buss/temp_betweenness_1.0/src/graph.h
+
+/home/mehdi/Nextcloud/recherche/code_buss/temp_betweenness_1.0/src/graph.h
+iostream
+-
+set
+-
+string
+-
+vector
+-
+
