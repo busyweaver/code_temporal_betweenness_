@@ -120,10 +120,10 @@ struct OptimalBetweennessData
   // Numbers of shortest paths from a source to each vertex appearance
   std::vector<std::vector<int>> sigmas;
   // Sets of predecessors for each vertex appearance
-  std::vector<std::vector<std::unordered_set<VertexAppearance>>> pre;
+  std::vector<std::map<int, std::unordered_set<VertexAppearance>>> pre;
   // Distances to each vertex appearance
   std::vector<std::vector<double>> cur_best;
-  std::vector<std::vector<Path>> opt_walk;
+  std::vector<std::map<int, Path>> opt_walk;
   // Distances to each vertex (*not* vertex __appearance__)
   std::vector<int> totalDists;
   // Number of shortests paths from a source to each vertex (*not* vertex __appearance__)
