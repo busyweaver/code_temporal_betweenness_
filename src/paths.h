@@ -1,71 +1,95 @@
 #include <limits>
 #include <stdlib.h>
-template struct Path {
+class Path {
 private:
-  void * nodes;
-  void * times;
+  std::vector<int>* nodes;
+  std::vector<int>* times;
+  int end;
 public:
-  Path() {nodes = NULL;
-    times = NULL;}
-  Path(node, time)
-  {nodes = node; times = time;}
-  bool is_empty() {return nodes.size() == 0;}
+  Path(std::vector<int> * nod, std::vector<int> * time)
+  {nodes = nod; times = time;
+    end = (*times).size();}
+  bool is_empty() {return (nodes != NULL) && ((*nodes).size() == 0);}
   bool is_none() {return nodes == NULL;}
 
-  void add_link(a int ,b int ,t int)
+  void add_link(int a,int b,int t)
   {
-    if (nodes != NULL && nodes.size() == 0)
+    if (nodes == NULL || times == NULL)
+      exit(-1);
+    if (nodes != NULL && (*nodes).size() == 0)
       {
-        nodes.push_back(a);
-        nodes.push_back(b);
-        times.push_back(t);
+        (*nodes).push_back(a);
+        (*nodes).push_back(b);
+        (*times).push_back(t);
       }
     else
       {
-        if (nodes[nodes.size() -1] == a)
+        if ((*nodes)[(*nodes).size() -1] == a)
           {
-            nodes.push_back(b);
-            times.push_back(t);
+            (*nodes).push_back(b);
+            (*times).push_back(t);
           }
       }
+    end ++;
 
   }
-  double co_sfp(int t, double cons)
+  int arrival()
   {
-    if (nodes == NULL)
-      {
-        return std::numeric_limits<double>::infinity();
-      }
-    if (nodes.size() == 0)
-        return 0.0
-    return cons * (t - times[0]) + times.size();
+    if(nodes == NULL || (*nodes).size() == 0)
+      exit(-1);
+    return (*times)[end -1];
   }
-  double co_short(int t, double cons)
+  int departure()
   {
-    if (nodes == NULL)
-      {
-        return std::numeric_limits<double>::infinity();
-      }
-    return times.size();
-   }
-
-  double co_first_arrival(int t, double cons)
-  {
-    if (nodes == NULL)
-      {
-        return std::numeric_limits<double>::infinity();
-      }
-    return times[times.size() -1];
+    if(nodes == NULL || (*nodes).size() == 0)
+      exit(-1);
+    return (*times)[0];
   }
-
+  int length()
+  {
+    if(nodes == NULL)
+      exit(-1);
+    return end;
+  }
   void display()
   {
-    for (int i = 0; i < times.size(); i++)
+    for (int i = 0; i < (*times).size(); i++)
       {
-        printf("%d - %d-> %d ", nodes[i],times[i],nodes[i+1]);
+        printf("%d - %d-> %d ", (*nodes)[i],(*times)[i],(*nodes)[i+1]);
       }
 
+  }
+  Path clone()
+  {
+    return Path(nodes, times);
   }
 
 
 };
+
+double co_sfp(Path m, int t, double cons)
+{
+  if (m.is_none())
+    {
+      return std::numeric_limits<double>::infinity();
+    }
+  if (m.is_empty())
+    return 0.0;
+  return cons * (t - m.departure()) + m.length();
+}
+double co_short(Path m, int t, double cons)
+{
+  if (m.is_none())
+      return std::numeric_limits<double>::infinity();
+  return m.length();
+}
+
+double co_first_arrival(Path m, int t, double cons)
+{
+  if (m.is_none())
+      return std::numeric_limits<double>::infinity();
+  if (m.is_empty())
+    return 0.0;
+  return m.arrival();
+}
+

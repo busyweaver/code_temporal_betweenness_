@@ -30,13 +30,17 @@ namespace akt {
         {
             // Outgoing edges from the node
             std::vector<int> neighbours;
+          // incoming edges into a node
+          std::vector<int> neighbours_inv;
             // Next timestep where the node will have outgoing edges (or -1 if no such timestep exists)
             int nextTimestep;
+          // Next timestep where the node will have ingoing edges (or -1 if no such timestep exists)
+          int nextTimestep_inv;
         };
 
         // Creates a graph with (initially) no edges, containing noNodes nodes and edges whose timestamps lie in [0, maximalTimestep]
         Graph(int noNodes, int maximalTimestep)
-            : nodes(noNodes), edges(0), lastTime(maximalTimestep), adj(noNodes, std::vector<AppearanceNeighbourhood>(maximalTimestep + 1, AppearanceNeighbourhood{ std::vector<int>(), -1 }))
+          : nodes(noNodes), edges(0), lastTime(maximalTimestep), adj(noNodes, std::vector<AppearanceNeighbourhood>(maximalTimestep + 1, AppearanceNeighbourhood{ std::vector<int>(), std::vector<int>(), -1, -1 }))
         { }
 
         // Same as Graph(int, int) except also add the edges from the set in a more efficient manner than by repeated addEdge() calls
@@ -47,6 +51,8 @@ namespace akt {
             // Add edges (without caring about the nextTimestep field for now)
             for (const auto& te : tes)
                 adj[te.from][te.when].neighbours.push_back(te.to);
+            for (const auto& te : tes)
+              adj[te.to][te.when].neighbours_inv.push_back(te.from);
             // Compute the nextTimestep values for all nodes at all times
             for (int i = 0; i < noNodes; ++i) {
                 // Initialize lastNonEmpty to the last timestep where node i has some outgoing edges
@@ -62,6 +68,22 @@ namespace akt {
                         --curTime;
                     }
                 }
+            }
+            // Compute the nextTimestep values for all nodes at all times
+            for (int i = 0; i < noNodes; ++i) {
+              // Initialize lastNonEmpty to the last timestep where node i has some outgoing edges
+              int lastNonEmpty = maximalTimestep;
+              for (; (lastNonEmpty >= 0) && (adj[i][lastNonEmpty].neighbours_inv.size() == 0); --lastNonEmpty)
+                ;
+              for (int curTime = lastNonEmpty - 1; curTime >= 0; ) {
+                for (; (curTime >= 0) && (adj[i][curTime].neighbours_inv.size() == 0); --curTime)
+                  adj[i][curTime].nextTimestep_inv = lastNonEmpty;
+                if (curTime >= 0) {
+                  adj[i][curTime].nextTimestep_inv = lastNonEmpty;
+                  lastNonEmpty = curTime;
+                  --curTime;
+                }
+              }
             }
         }
 
@@ -103,6 +125,8 @@ namespace akt {
 
         // Returns the last timestep in the graph
         int maximalTimestep() const { return lastTime; }
+        // maybe it can be improved, by taking the first real time step
+        int minimalTimestep() const { return 0; }
 
         // Returns the O(nT) adjacency list for the graph
         const std::vector<std::vector<AppearanceNeighbourhood>>& adjacencyList() const { return adj; }
