@@ -36,6 +36,8 @@ namespace akt {
             int nextTimestep;
           // Next timestep where the node will have ingoing edges (or -1 if no such timestep exists)
           int nextTimestep_inv;
+          std::vector<int> events;
+          std::map<int, int> events_rev;
         };
 
         // Creates a graph with (initially) no edges, containing noNodes nodes and edges whose timestamps lie in [0, maximalTimestep]
@@ -48,9 +50,14 @@ namespace akt {
             : Graph(noNodes, maximalTimestep)
         {
             edges = tes.size();
+            set<int> events_set;
             // Add edges (without caring about the nextTimestep field for now)
             for (const auto& te : tes)
+              {
                 adj[te.from][te.when].neighbours.push_back(te.to);
+                events_set.insert(te.when);
+              }
+                
             for (const auto& te : tes)
               adj[te.to][te.when].neighbours_inv.push_back(te.from);
             // Compute the nextTimestep values for all nodes at all times
@@ -85,6 +92,12 @@ namespace akt {
                 }
               }
             }
+            std::map<int, int> events_rev;
+            std::vector<int> events(s.begin(), s.end());
+            sort(events.begin(), events.end());
+            for (int i = 0; i < events.size(); i++)
+              events_rev[events[i]] = i;
+
         }
 
         // Adds the temporal edge to the graph

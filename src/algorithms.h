@@ -15,4 +15,18 @@ namespace akt {
 	// Returns the shortest betweenness for a static graph (i.e. all edges have timestamp 0) using Brandes' algorithm
 	std::vector<double> shortestBetweennessStatic(const akt::Graph& g);
 
+  struct VertexAppearance
+  {
+    // Vertex id
+    int v;
+    // Timestamp
+    int time;
+    bool operator<(const VertexAppearance & other) const
+    {
+      std::pair<int,int> p2(other.v,other.time);
+      std::pair<int,int> p (v,time);
+
+      return  p < p2;
+    }
+  };
 } // end namespace akt

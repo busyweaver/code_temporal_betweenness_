@@ -7,6 +7,7 @@
 #include <unordered_set>
 #include <limits>
 #include <map>
+#include<networkit/graph/Graph.hpp>
 
 bool temporalEdgeGreaterTimewise(const akt::TemporalEdge& lhs, const akt::TemporalEdge& rhs)
 {
@@ -26,20 +27,7 @@ struct VertexDistInfo
 };
 
 // Stores data about a vertex appearance
-struct VertexAppearance
-{
-  // Vertex id
-  int v;
-  // Timestamp
-  int time;
-  bool operator<(const VertexAppearance & other) const
-  {
-    std::pair<int,int> p2(other.v,other.time);
-    std::pair<int,int> p (v,time);
 
-    return  p < p2;
-  }
-};
 
 
 bool operator==(const VertexAppearance& lhs, const VertexAppearance& rhs)
@@ -73,7 +61,6 @@ struct ShortestBetweennessData
       totalDists{ std::vector<int>(n, -1) },
       totalSigmas{ std::vector<int>(n, 0) },
       stack{ std::vector<VertexAppearance>() },
-      heap{ FibonacciHeap<VertexAppearance>() },
       foremostTimes{ std::vector<int>(n, -1) },
       deltaForemosts{ std::vector<std::vector<double>>(n, std::vector<double>(T, 0.0)) }
   { }
@@ -95,8 +82,6 @@ struct ShortestBetweennessData
   std::vector<int> totalSigmas;
   // Stack of vertex apperances in order of their discovery with the bfs
   std::vector<VertexAppearance> stack;
-  FibonacciHeap<VertexAppearance> heap;
-
 
 
   // Additional arrays for handling shortest foremost computation
@@ -109,36 +94,40 @@ struct ShortestBetweennessData
 struct OptimalBetweennessData
 {
   OptimalBetweennessData(int n, int T)
-    : deltaDots{ std::vector<std::vector<double>>(n, std::vector<double>(T, 0.0)) },
-      sigmas{ std::vector<std::vector<int>>(n, std::vector<int>(T, 0)) },
+    : deltasvvt{ std::vector<std::vector<double>>(n, std::vector<double>(T, 0.0)) },
+      deltadot{ std::vector<std::vector<double>>(n, std::vector<double>(T, 0.0)) },
+      sigma{ std::vector<std::vector<int>>(n, std::vector<int>(T, 0)) },
+      sigmadot{ std::vector<std::vector<int>>(n, std::vector<int>(T, 0)) },
+      totalSigmaT{ std::vector<std::vector<int>>(n, std::vector<int>(T, 0)) },
       pre{ std::vector<std::vector<std::unordered_set<VertexAppearance>>>(n, std::vector<std::unordered_set<VertexAppearance>>(T)) },
       cur_best{ std::vector<std::vector<double>>(n, std::vector<double>(T, std::numeric_limits<double>::infinity())) },
       opt_walk{ std::vector<std::vector<Path>>(n, std::vector<Path>(T, Path(NULL,NULL))) },
-      totalDists{ std::vector<int>(n, -1) },
-      totalSigmas{ std::vector<int>(n, 0) },
-      stack{ std::vector<VertexAppearance>() },
-      heap{ FibonacciHeap<VertexAppearance>() }
+      optimalNode{ std::vector<int>(n, std::numeric_limits<double>::infinity()) },
+      totalSigma{ std::vector<int>(n, 0) },
+      stack{ std::vector<VertexAppearance>() }
   { }
   OptimalBetweennessData(const akt::Graph& g)
     : OptimalBetweennessData(g.N(), g.T())
   { }
 
   // The \delta_{s\cdot} array on each iteration
-  std::vector<std::vector<double>> deltaDots;
+  std::vector<std::vector<double>> deltadot;
+  std::vector<std::vector<double>> deltasvvt;
   // Numbers of shortest paths from a source to each vertex appearance
-  std::vector<std::vector<int>> sigmas;
+  std::vector<std::vector<int>> sigma;
+  std::vector<std::vector<int>> sigmadot;
+  std::vector<std::vector<int>> totalSigmaT;
   // Sets of predecessors for each vertex appearance
   std::vector<std::vector<std::unordered_set<VertexAppearance>>> pre;
   // Distances to each vertex appearance
   std::vector<std::vector<double>> cur_best;
   std::vector<std::vector<Path>> opt_walk;
   // Distances to each vertex (*not* vertex __appearance__)
-  std::vector<int> totalDists;
+  std::vector<double> optimalNode;
   // Number of shortests paths from a source to each vertex (*not* vertex __appearance__)
-  std::vector<int> totalSigmas;
+  std::vector<int> totalSigma;
   // Stack of vertex apperances in order of their discovery with the bfs
   std::vector<VertexAppearance> stack;
-  FibonacciHeap<VertexAppearance> heap;
 };
 
 
@@ -170,19 +159,19 @@ void reinitializeHelperStructOptimal(const akt::Graph& g, int s, OptimalBetweenn
   // Reinitialize the appearance-based arrays (at the only relevant times)
   for (auto it = g.edges_cbegin(); it != g.edges_cend(); ++it) {
     auto te = *it;
-    sbd.deltaDots[te.to][te.when] = 0.0;
+    sbd.deltasvvt[te.to][te.when] = 0.0;
     sbd.sigmas[te.to][te.when] = 0;
     sbd.pre[te.to][te.when].clear();
   }
   // Reinitialize the vertex-based arrays
-  std::transform(sbd.totalDists.cbegin(), sbd.totalDists.cend(), sbd.totalDists.begin(), [](auto i) { return -1; });
-  std::transform(sbd.totalSigmas.cbegin(), sbd.totalSigmas.cend(), sbd.totalSigmas.begin(), [](auto i) { return 0; });
+  std::transform(sbd.optimalNode.cbegin(), sbd.totalDists.cend(), sbd.totalDists.begin(), [](auto i) { return -1; });
+  std::transform(sbd.totalSigma.cbegin(), sbd.totalSigmas.cend(), sbd.totalSigmas.begin(), [](auto i) { return 0; });
   // Reinitialize the stack (though it should be empty already, so it's just a sanity operation)
   sbd.stack.clear();
   // Initialize the elements involving the source to appropriate values (if different from the defaults)
-  sbd.sigmas[s][0] = 1;
-  sbd.totalDists[s] = 0;
-  sbd.totalSigmas[s] = 1;
+
+
+
 }
 
 // (Re-) Initializes all the members in sbd for the next iteration of the outermost iteration of the shortest betwenness algorithm
@@ -256,6 +245,7 @@ void optimal_initialization(const akt::Graph& g, int s, OptimalBetweennessData& 
         std::pair<int,int> p_tmp (s,t);
         std::pair<double,std::pair<int,int>> p (sbd.cur_best[s][t], p_tmp);
         q_nodes[VertexAppearance{s,t}] = q.insert(p);
+        sbd.OptimalNode[s] = 0.0;
 
       }
   }
@@ -284,6 +274,8 @@ void relax_resting(int b, int t, int tp, OptimalBetweennessData& sbd, FibonacciH
               q.decreaseKey(q_nodes[VertexAppearance{b,tp}], p);
             else
               q_nodes[VertexAppearance{b,tp}] = q.insert(p);
+            if (cnew < OptimalNode[b])
+              OptimalNode[b] = cnew;
 
           }
 }
@@ -308,6 +300,8 @@ void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, FibonacciHe
               q.decreaseKey(q_nodes[VertexAppearance{b,tp}], p);
               else
                 q_nodes[VertexAppearance{b,tp}] = q.insert(p);
+            if (cnew < OptimalNode[b])
+              OptimalNode[b] = cnew;
 
           }
   if (cnew == sbd.cur_best[b][tp])
@@ -374,6 +368,19 @@ void shortestEmptyStackUpdateBetweenness(int s, ShortestBetweennessData& sbd, st
       fmBetweenness[pred.v] += foremostSummand;
     }
   }
+}
+
+void OptimalUpdateBetweenness(int s, const akt::Graph& g, OptimalBetweennessData& sbd, std::vector<double>& betweenness, double (*cost)(Path, int, double), bool (*cmp)(double, double), std::string walk_type, double n)
+{
+  Predecessor G = PredecessorGraph(g, pre, s);
+  std::pair<std::unordered_set<int>, std::unordered_set<int>> p;
+  p = RemoveInfiniteFromPredecessor(s, G.g, sbd, cost, cmp, walk_type);
+  VolumePathAt(G, s, G.sinks, sbd);
+  OptimalSigma(s, &G, sbd, g, n, cost);
+  ComputeDeltaSvvt(&G, s, sbd);
+  PredecessorGraphToOrdered(&G, g.maximalTimestep(), g.events_rev);
+  std::map<VertexAppearance, VertexAppearance> preced;
+  GeneralContribution(g, &G, s, sbd, preced);
 }
 
 void prefixDoForemostBasedSearch(const akt::Graph& g, int s, PrefixBetweennessData& pbd)
@@ -504,3 +511,7 @@ namespace akt {
   }
 
 } // end namespace akt
+
+
+
+void GeneralContribution(int s, OptimalBetweennessData& sbd, std::vector<double>& betweenness)
