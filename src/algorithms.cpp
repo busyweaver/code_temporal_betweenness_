@@ -22,6 +22,7 @@ struct VertexDistInfo
   int dist;
   // The earliest possible arrival time at the node
   int foremostTime;
+
 };
 
 // Stores data about a vertex appearance
@@ -31,6 +32,13 @@ struct VertexAppearance
   int v;
   // Timestamp
   int time;
+  bool operator<(const VertexAppearance & other) const
+  {
+    std::pair<int,int> p2(other.v,other.time);
+    std::pair<int,int> p (v,time);
+
+    return  p < p2;
+  }
 };
 
 
@@ -120,10 +128,10 @@ struct OptimalBetweennessData
   // Numbers of shortest paths from a source to each vertex appearance
   std::vector<std::vector<int>> sigmas;
   // Sets of predecessors for each vertex appearance
-  std::vector<std::map<int, std::unordered_set<VertexAppearance>>> pre;
+  std::vector<std::vector<std::unordered_set<VertexAppearance>>> pre;
   // Distances to each vertex appearance
   std::vector<std::vector<double>> cur_best;
-  std::vector<std::map<int, Path>> opt_walk;
+  std::vector<std::vector<Path>> opt_walk;
   // Distances to each vertex (*not* vertex __appearance__)
   std::vector<int> totalDists;
   // Number of shortests paths from a source to each vertex (*not* vertex __appearance__)
@@ -156,6 +164,26 @@ struct PrefixBetweennessData
   // Stack of nodes in order of their discovery with the "foremost-based" search
   std::vector<int> stack;
 };
+// (Re-) Initializes all the members in sbd for the next iteration of the outermost iteration of the shortest betwenness algorithm
+void reinitializeHelperStructOptimal(const akt::Graph& g, int s, OptimalBetweennessData& sbd)
+{
+  // Reinitialize the appearance-based arrays (at the only relevant times)
+  for (auto it = g.edges_cbegin(); it != g.edges_cend(); ++it) {
+    auto te = *it;
+    sbd.deltaDots[te.to][te.when] = 0.0;
+    sbd.sigmas[te.to][te.when] = 0;
+    sbd.pre[te.to][te.when].clear();
+  }
+  // Reinitialize the vertex-based arrays
+  std::transform(sbd.totalDists.cbegin(), sbd.totalDists.cend(), sbd.totalDists.begin(), [](auto i) { return -1; });
+  std::transform(sbd.totalSigmas.cbegin(), sbd.totalSigmas.cend(), sbd.totalSigmas.begin(), [](auto i) { return 0; });
+  // Reinitialize the stack (though it should be empty already, so it's just a sanity operation)
+  sbd.stack.clear();
+  // Initialize the elements involving the source to appropriate values (if different from the defaults)
+  sbd.sigmas[s][0] = 1;
+  sbd.totalDists[s] = 0;
+  sbd.totalSigmas[s] = 1;
+}
 
 // (Re-) Initializes all the members in sbd for the next iteration of the outermost iteration of the shortest betwenness algorithm
 void reinitializeHelperStruct(const akt::Graph& g, int s, ShortestBetweennessData& sbd)
@@ -286,7 +314,7 @@ void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, FibonacciHe
     sbd.pre[b][tp].insert(VertexAppearance{a,t});
 }
 
-void Optimal_ComputeDistancesSigmas(const akt::Graph& g, bool strict, int s, OptimalBetweennessData& sbd, double (*cost)(Path, int, double), bool (*cmp)(double, double), std::string walk_type  )
+void optimalComputeDistancesSigmas(const akt::Graph& g, bool strict, int s, OptimalBetweennessData& sbd, double (*cost)(Path, int, double), bool (*cmp)(double, double), std::string walk_type  )
 {
   std::map<VertexAppearance, node<std::pair<double,std::pair<int,int>>>* > q_nodes;
   FibonacciHeap<std::pair<double,std::pair<int,int>> > q;
@@ -390,17 +418,17 @@ void prefixEmptyStackUpdateBetweenness(int s, PrefixBetweennessData& pbd, std::v
 
 namespace akt {
   // Computes the betweenness measures
-  std::pair<std::vector<double>, std::vector<double>> optimalBetweenness(const Graph& g, bool strict)
+  std::vector<double> optimalBetweenness(const Graph& g, bool strict, double (*cost)(Path, int, double), bool (*cmp)(double, double), std::string walk_type)
   {
     auto sbd = OptimalBetweennessData(g);
     // Stores the betweenness values; initialize to 1 because of the formula for betweenness having a constant +1
     auto optimalBetweenness = std::vector<double>(g.N(), 1.0);
     for (int s = 0; s < g.N(); ++s) {
-      reinitializeHelperStruct(g, s, sbd);
-      shortestComputeDistancesSigmas(g, strict, s, sbd);
-      shortestEmptyStackUpdateBetweenness(s, sbd, shortestBetweenness, foremostBetweenness);
+      reinitializeHelperStructOptimal(g, s, sbd);
+      optimalComputeDistancesSigmas(g, strict, s, sbd, cost, cmp, walk_type);
+      //shortestEmptyStackUpdateBetweenness(s, sbd, shortestBetweenness, foremostBetweenness);
     }
-    return { shortestBetweenness, foremostBetweenness };
+    return optimalBetweenness;
   }
 
   // Computes the betweenness measures
@@ -431,6 +459,7 @@ namespace akt {
 
     return res;
   }
+
 
   // Returns the shortest betweenness for a static graph (i.e. all edges have timestamp 0) using Brandes' algorithm
   std::vector<double> shortestBetweennessStatic(const Graph& g)
