@@ -372,6 +372,7 @@ void shortestEmptyStackUpdateBetweenness(int s, ShortestBetweennessData& sbd, st
 
 void OptimalUpdateBetweenness(int s, const akt::Graph& g, OptimalBetweennessData& sbd, std::vector<double>& betweenness, double (*cost)(Path, int, double), bool (*cmp)(double, double), std::string walk_type, double n)
 {
+  std::vector<std::vector<double>> betweenness_exact;
   Predecessor G = PredecessorGraph(g, pre, s);
   std::pair<std::unordered_set<int>, std::unordered_set<int>> p;
   p = RemoveInfiniteFromPredecessor(s, G.g, sbd, cost, cmp, walk_type);
@@ -381,6 +382,7 @@ void OptimalUpdateBetweenness(int s, const akt::Graph& g, OptimalBetweennessData
   PredecessorGraphToOrdered(&G, g.maximalTimestep(), g.events_rev);
   std::map<VertexAppearance, VertexAppearance> preced;
   GeneralContribution(g, &G, s, sbd, preced);
+  UpdateBetweenness(betweenness_exact, sbd);
 }
 
 void prefixDoForemostBasedSearch(const akt::Graph& g, int s, PrefixBetweennessData& pbd)

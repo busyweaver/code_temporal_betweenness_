@@ -10,8 +10,6 @@ class Predecessor {
   std::unordered_set<int> sinks;
   std::map<int, std::map<int, std::vector<int> > > ordered_neighb;
   Predecessor () {}
-
-
 };
 
 

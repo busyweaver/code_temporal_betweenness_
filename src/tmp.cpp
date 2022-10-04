@@ -62,5 +62,7 @@ int main(int argc, char* argv[]) {
     std::cout << i << std::endl;
   }
 
+  NetworKit::Graph GGG = NetworKit::Graph(5, false, true, false);
+  GGG.addEdge(0,1);
 
 }

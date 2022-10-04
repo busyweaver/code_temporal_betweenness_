@@ -337,7 +337,23 @@ void GeneralContribution(const akt::Graph& g, Predecessor G, int s, OptimalBetwe
 
 void DeltaSvt(int s, int v, int t, std::map<int, std::map<int, std::vector<int> > >& l_nei, OptimalBetweennessData& sbd, const akt::Graph& g, std::map<VertexAppearance, VertexAppearance> &preced , std::string walk_type, unordered_set<VertexAppearance> visited)
 {
+  int T = g.maximalTimestep();
   if (visited.contains(VertexAppearance {v,t}))
     return;
-  
+  std::map<int, double> partial_sum;
+  std::map<int, double> contrib_local;
+  auto s = 0.0;
+  std::map<int, std::map<int, std::vector<int> > >::reverse_iterator rit;
+  for (rit=l_nei.rbegin(); rit!=l_nei.rend(); ++rit)
+    {
+      for(const auto& u: l_nei[v*T + t][rit->second])
+        {
+          int w = u/T;
+          int tp = u%T;
+          DeltaSvt(s, w, tp,  l_nei,  sbd, g, preced , walk_type, visited);
+          s += (sbd.sigma[v][t]/sbd.sigma[w][tp])*sbd.deltadot[w][tp];
+          partial_sum[rit->second] = s;
+        }
+    }
+  sbd.deltadot[v][t] = s + sbd.deltasvvt[v][t];
 }
