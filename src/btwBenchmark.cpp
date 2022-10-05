@@ -6,15 +6,14 @@
 #include <tuple>
 
 #include <boost/program_options.hpp>
-
 #include "algorithms.h"
-#include "graph.h"
 
 namespace po = boost::program_options;
 
 struct BenchmarkResults 
 {
     std::vector<double> shortest, foremost, strictShortest, strictForemost, prefix;
+  std::vector<std::vector<double>> optimal;
     int n;
     std::vector<std::string> inputIds;
     double nonStrictTime = -1.0;
@@ -30,6 +29,7 @@ struct BenchmarkSettings
     bool edgesDirected = false;
     bool originalNodeIds = false;
     bool readFromFile = false;
+  bool runGeneral = true;
     std::string filename;
 };
 
@@ -60,6 +60,15 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, const BenchmarkSettings& bs)
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> time = end - start;
         res.prefixTime = time.count();
+    }
+
+    if (bs.runGeneral) {
+      std::clog << "Starting general." << std::endl;
+      auto start = std::chrono::high_resolution_clock::now();
+      res.optimal = optimalBetweenness(g, false, "shortestfastest", "le", "passive");
+      auto end = std::chrono::high_resolution_clock::now();
+      std::chrono::duration<double> time = end - start;
+      res.prefixTime = time.count();
     }
 
     return res;

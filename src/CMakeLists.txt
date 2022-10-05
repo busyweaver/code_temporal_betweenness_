@@ -15,6 +15,9 @@ add_executable(btwBenchmark
 	btwBenchmark.cpp
 	algorithms.cpp
 	graph.cpp
+  paths.cpp
+  predecessor_graph.cpp
+  fibonacciheap.cpp
 )
 
 target_link_libraries(btwBenchmark boost_program_options)

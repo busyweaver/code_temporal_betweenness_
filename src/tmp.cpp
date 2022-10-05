@@ -64,5 +64,7 @@ int main(int argc, char* argv[]) {
 
   NetworKit::Graph GGG = NetworKit::Graph(5, false, true, false);
   GGG.addEdge(0,1);
+  std::vector<std::vector<std::unordered_set<int>>> pre;
+  pre = std::vector<std::vector<std::unordered_set<int>>>(10, std::vector<std::unordered_set<int>>(10)) ;
 
 }

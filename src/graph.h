@@ -1,10 +1,10 @@
 #pragma once
 
-#include <iostream>
 #include <set>
 #include <string>
 #include <vector>
-
+#include <map>
+#include <algorithm>    // std::sort
 // Possible modification: make a space-time trade-off and store the set of edges in the graph
 // Possible modification: make a space-time trade-off and store the current edge of the iterator in Graph::EdgeConstIterator
 
@@ -36,9 +36,9 @@ namespace akt {
             int nextTimestep;
           // Next timestep where the node will have ingoing edges (or -1 if no such timestep exists)
           int nextTimestep_inv;
-          std::vector<int> events;
-          std::map<int, int> events_rev;
         };
+      std::vector<int> events;
+      std::map<int, int> events_rev;
 
         // Creates a graph with (initially) no edges, containing noNodes nodes and edges whose timestamps lie in [0, maximalTimestep]
         Graph(int noNodes, int maximalTimestep)
@@ -50,7 +50,7 @@ namespace akt {
             : Graph(noNodes, maximalTimestep)
         {
             edges = tes.size();
-            set<int> events_set;
+            std::set<int> events_set;
             // Add edges (without caring about the nextTimestep field for now)
             for (const auto& te : tes)
               {
@@ -93,8 +93,8 @@ namespace akt {
               }
             }
             std::map<int, int> events_rev;
-            std::vector<int> events(s.begin(), s.end());
-            sort(events.begin(), events.end());
+            std::vector<int> events(events_set.begin(), events_set.end());
+            std::sort(events.begin(), events.end());
             for (int i = 0; i < events.size(); i++)
               events_rev[events[i]] = i;
 

@@ -1,19 +1,21 @@
-#include <predecessor_graph.h>
+#include "predecessor_graph.h"
 #include <algorithm>
 #include <networkit/components/StronglyConnectedComponents.hpp>
 #include <networkit/distance/BFS.hpp>
 #include <numeric>
 #include <map>
 #include <tuple>
+Predecessor::Predecessor()
+{}
 
-Predecessor* PredecessorGraph(const akt::Graph& g, std::vector<std::map<int, std::unordered_set<akt::VertexAppearance>>> pre, int node)
+Predecessor PredecessorGraph(const akt::Graph& g, std::vector<std::vector<std::unordered_set<VertexAppearance>>> pre, int node)
 {
   int n = g.N();
   int T = g.maximalTimestep();
-  // std::unordered_set<akt::VertexAppearance>> ens;
+  // std::unordered_set<VertexAppearance>> ens;
   // for (int k = 0; k < g.N(); i++)
   //   {
-  //     map<int, std::unordered_set<akt::VertexAppearance>>::iterator key;
+  //     map<int, std::unordered_set<VertexAppearance>>::iterator key;
   //     for(key=pre[k].begin(); key!=pre[k].end(); ++key){
   //       {
   //         for (const auto& elem: pre[i][key]) {
@@ -37,15 +39,14 @@ Predecessor* PredecessorGraph(const akt::Graph& g, std::vector<std::map<int, std
   //   }
   Predecessor G;
   G.g = NetworKit::Graph(n*T, false, true, false);
-  for (int k = 0; k < n; i++)
+  for (int k = 0; k < n; k++)
     {
-      map<int, std::unordered_set<akt::VertexAppearance>>::iterator key;
-      for(key=pre[k].begin(); key!=pre[k].end(); ++key){
+      for(int key = 0; key < T; key++){
         {
-          for (const auto& elem: pre[i][key]) {
-            v = elem.v;
-            t = elem.time;
-            if !(k == node  &&  elem.v != -1){
+          for (const auto& elem: pre[k][key]) {
+            auto v = elem.v;
+            auto t = elem.time;
+            if (!(k == node  &&  elem.v != -1)){
                 if (v == node)
                   {
                     G.g.addEdge(node*g.maximalTimestep() + key,k*g.maximalTimestep() + key);
@@ -59,7 +60,7 @@ Predecessor* PredecessorGraph(const akt::Graph& g, std::vector<std::map<int, std
         }
       }
     }
-  return &G
+  return G;
 
 }
 
@@ -79,7 +80,7 @@ NetworKit::Graph condensationGraph(Predecessor& G, NetworKit::StronglyConnectedC
       itr2 = (*itr).begin();
       NetworKit::BFS bfs(G.g, *itr2, false, true);
       bfs.run();
-      std::vector<node> stack = bfs.getNodesSortedByDistance();
+      std::vector<NetworKit::node> stack = bfs.getNodesSortedByDistance();
       for(NetworKit::node i : stack)
         {
           if( partition.subsetOf(i) !=  partition.subsetOf(*itr2))
@@ -93,16 +94,16 @@ NetworKit::Graph condensationGraph(Predecessor& G, NetworKit::StronglyConnectedC
   return GG;
 }
 
-std::pair<std::unordered_set<int>, std::unordered_set<int>> RemoveInfiniteFromPredecessor(int s, Predecessor& G, OptimalBetweennessData& sbd, double (*cost)(Path, int, double), bool (*cmp)(double, double), std::string walk_type)
+std::unordered_set<VertexAppearance> Infinite_closure(Predecessor& G, const std::vector<int> &events, const std::map<int, int> &events_rev, OptimalBetweennessData &sbd, double (*cost)(Path, int, double), bool (*cmp)(double, akt::Graph &), std::unordered_set<int> &node_inf, akt::Graph & g)
 {
   NetworKit::StronglyConnectedComponents scc(G.g);
   scc.run();
-  NetworKit::Graph cond = condensationGraph(G.g, scc);
+  NetworKit::Graph cond = condensationGraph(G, scc);
   std::unordered_set<int> inf_scc;
   const auto sizes = scc.getPartition().subsetSizes();
   const auto ids = scc.getPartition().getSubsetIds();
   const auto map_id = scc.getPartition().subsetSizeMap();
-  map<int, int>::iterator it;
+  std::map<int, int>::iterator it;
   for (it = map_id.begin(); it != map_id.end(); it++)
     {
       // we keep ids of scc with more than one temporal vertex
@@ -149,22 +150,22 @@ std::pair<std::unordered_set<int>, std::unordered_set<int>> RemoveInfiniteFromPr
             }
         }
     }
-  auto clos_inf = infinite_closure(s, G.g, temp_inf, cost, sbd, cmp, n);
+  auto clos_inf = infinite_closure(G, events, events_rev, temp_inf, cost, sbd, cmp, g);
 
   return {temp_inf, clos_inf};
 }
 
-unordered_set<akt::VertexAppearance> Infinite_closure(Predecessor& G, std::vector<int> &events, list<int> &events_rev, OptimalBetweennessData &sbd, double (*cost)(Path, int, double), bool (*cmp)(double, double), double n, std::unordered_set<int> &node_inf)
+unordered_set<VertexAppearance> Infinite_closure(Predecessor& G, OptimalBetweennessData &sbd, double (*cost)(Path, int, double), bool (*cmp)(double, akt::Graph &), double n, std::unordered_set<int> &node_inf, akt::Graph &g)
 {
   int T = events[events.size() -1];
-  unordered_set<akt::VertexAppearance> res;
+  unordered_set<VertexAppearance> res;
   for (const auto& elem: node_inf) {
     int i = events_rev[elem.t] + 1;
     while(i < events.size() && G.g.hasNode(elem.v * T + elem.t) == false)
       {
-        if (cmp(cost(sbd.opt_walk[elem.v][elem.t]), events[i], n) , sbd.cur_best[elem.v][events[i]])
+        if (cmp(cost(sbd.opt_walk[elem.v][elem.t]), events[i], g) , sbd.cur_best[elem.v][events[i]])
           {
-            res.inserts(akt::VertexAppearance{v, events[i]});
+            res.inserts(VertexAppearance{v, events[i]});
           }
         i++;
       }
@@ -175,10 +176,10 @@ unordered_set<akt::VertexAppearance> Infinite_closure(Predecessor& G, std::vecto
 
 void volumePathAtRec(int s,int e,Predecessor& G,OptimalBetweennessData &sbd, int T)
 {
-  if(sbd.sigmadot[akt::VertexAppearance{e/T,e%T}] != 0)
+  if(sbd.sigmadot[VertexAppearance{e/T,e%T}] != 0)
     return;
   if(e/T == s)
-    sbd.sigmadot[akt::VertexAppearance{e/T,e%T}] = 1;
+    sbd.sigmadot[VertexAppearance{e/T,e%T}] = 1;
   else
     {
       unsigned long long res = 0;
@@ -219,10 +220,10 @@ void OptimalSigma(int node, Predecessor &G, OptimalBetweennessData &sbd, const a
           int t = s.events[ev];
           if (node == k)
             {
-              if (sbd.sigmadot[akt::VertexAppearance{k, t}] > 0 )
-                sbd.sigma[akt::VertexAppearance{k, t}] = sbd.sigmadot[akt::VertexAppearance{k, t}];
+              if (sbd.sigmadot[VertexAppearance{k, t}] > 0 )
+                sbd.sigma[VertexAppearance{k, t}] = sbd.sigmadot[VertexAppearance{k, t}];
               else
-                sbd.sigma[akt::VertexAppearance{k, t}] = 0;
+                sbd.sigma[VertexAppearance{k, t}] = 0;
             }
           else
             {
@@ -230,11 +231,11 @@ void OptimalSigma(int node, Predecessor &G, OptimalBetweennessData &sbd, const a
                 {
                   if (G.g.hasNode(k*T + t))
                     {
-                      sbd.sigma[akt::VertexAppearance{k, t}] = sbd.sigmadot[akt::VertexAppearance{k, t}];
+                      sbd.sigma[VertexAppearance{k, t}] = sbd.sigmadot[VertexAppearance{k, t}];
                       pred = t;
                     }
                   else
-                      sbd.sigma[akt::VertexAppearance{k, t}] = 0;
+                      sbd.sigma[VertexAppearance{k, t}] = 0;
                 }
               else
                 {
@@ -242,24 +243,24 @@ void OptimalSigma(int node, Predecessor &G, OptimalBetweennessData &sbd, const a
                     {
                       if(sbd.cur_best[k][t] == cost(sbd.opt_walk[k][pred], t, n))
                         {
-                          sbd.sigma[akt::VertexAppearance{k, t}] = sbd.sigma[akt::VertexAppearance{k, pred}] + sbd.sigmadot[akt::VertexAppearance{k, t}];
+                          sbd.sigma[VertexAppearance{k, t}] = sbd.sigma[VertexAppearance{k, pred}] + sbd.sigmadot[VertexAppearance{k, t}];
                           pred = t;
                         }
                       else
                         {
-                          sbd.sigma[akt::VertexAppearance{k, t}] = sbd.sigmadot[akt::VertexAppearance{k, t}];
+                          sbd.sigma[VertexAppearance{k, t}] = sbd.sigmadot[VertexAppearance{k, t}];
                           pred = t;
                         }
                     }
                   else
                     {
-                      sbd.sigma[akt::VertexAppearance{k, t}] = sbd.sigma[akt::VertexAppearance{k, pred}];
+                      sbd.sigma[VertexAppearance{k, t}] = sbd.sigma[VertexAppearance{k, pred}];
                     }
                 }
             }
-          if (node_inf.count(akt::VertexAppearance{k,t}) == 1)
+          if (node_inf.count(VertexAppearance{k,t}) == 1)
             {
-              sbd.sigma[akt::VertexAppearance{k, t}] = std::numeric_limits<double>::infinity();
+              sbd.sigma[VertexAppearance{k, t}] = std::numeric_limits<double>::infinity();
             }
         }
 
