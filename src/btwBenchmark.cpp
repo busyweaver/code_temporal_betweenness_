@@ -19,6 +19,7 @@ struct BenchmarkResults
     double nonStrictTime = -1.0;
     double strictTime = -1.0;
     double prefixTime = -1.0;
+  double optimalTime = -1.0;
 };
 
 struct BenchmarkSettings
@@ -68,7 +69,7 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, const BenchmarkSettings& bs)
       res.optimal = optimalBetweenness(g, false, "shortestfastest", "le", "passive");
       auto end = std::chrono::high_resolution_clock::now();
       std::chrono::duration<double> time = end - start;
-      res.prefixTime = time.count();
+      res.optimalTime = time.count();
     }
 
     return res;

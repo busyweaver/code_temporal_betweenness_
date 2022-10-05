@@ -100,7 +100,7 @@ public:
 		}
 		std::cout << "The root nodes of Heap are: " << std::endl;
 		_display_tree(heap, "");
-		std::cout << std::endl;
+		std::cout <<  " "   << std::endl;
 	}
 
 private:

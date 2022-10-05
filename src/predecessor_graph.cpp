@@ -2,16 +2,18 @@
 #include <algorithm>
 #include <networkit/components/StronglyConnectedComponents.hpp>
 #include <networkit/distance/BFS.hpp>
+#include <networkit/graph/Graph.hpp>
 #include <numeric>
 #include <map>
 #include <tuple>
+//#include<vector>
 Predecessor::Predecessor()
 {}
 
-Predecessor PredecessorGraph(const akt::Graph& g, std::vector<std::vector<std::unordered_set<VertexAppearance>>> pre, int node)
+Predecessor::Predecessor(const akt::Graph& gg, std::vector<std::vector<std::unordered_set<VertexAppearance>>> pre, int node)
 {
-  int n = g.N();
-  int T = g.maximalTimestep();
+  int n = gg.N();
+  int T = gg.maximalTimestep();
   // std::unordered_set<VertexAppearance>> ens;
   // for (int k = 0; k < g.N(); i++)
   //   {
@@ -37,8 +39,7 @@ Predecessor PredecessorGraph(const akt::Graph& g, std::vector<std::vector<std::u
   //       }
   //     }
   //   }
-  Predecessor G;
-  G.g = NetworKit::Graph(n*T, false, true, false);
+  g = NetworKit::Graph(n*T, false, true, false);
   for (int k = 0; k < n; k++)
     {
       for(int key = 0; key < T; key++){
@@ -49,19 +50,17 @@ Predecessor PredecessorGraph(const akt::Graph& g, std::vector<std::vector<std::u
             if (!(k == node  &&  elem.v != -1)){
                 if (v == node)
                   {
-                    G.g.addEdge(node*g.maximalTimestep() + key,k*g.maximalTimestep() + key);
+                    g.addEdge(node*T + key, k*T + key);
                   }
                 else
                   {
-                    G.g.addEdge(v*g.maximalTimestep() + t, k*g.maximalTimestep() + key);
+                    g.addEdge(v*T + t, k*T + key);
                   }
               }
           }
         }
       }
     }
-  return G;
-
 }
 
 NetworKit::Graph condensationGraph(Predecessor& G, NetworKit::StronglyConnectedComponents scc)
@@ -94,78 +93,17 @@ NetworKit::Graph condensationGraph(Predecessor& G, NetworKit::StronglyConnectedC
   return GG;
 }
 
-std::unordered_set<VertexAppearance> Infinite_closure(Predecessor& G, const std::vector<int> &events, const std::map<int, int> &events_rev, OptimalBetweennessData &sbd, double (*cost)(Path, int, double), bool (*cmp)(double, akt::Graph &), std::unordered_set<int> &node_inf, akt::Graph & g)
+std::unordered_set<int> Infinite_closure(Predecessor& G, OptimalBetweennessData &sbd, double (*cost)(Path, int, const akt::Graph &), bool (*cmp)(double, double), std::unordered_set<int> &node_inf, const akt::Graph &g)
 {
-  NetworKit::StronglyConnectedComponents scc(G.g);
-  scc.run();
-  NetworKit::Graph cond = condensationGraph(G, scc);
-  std::unordered_set<int> inf_scc;
-  const auto sizes = scc.getPartition().subsetSizes();
-  const auto ids = scc.getPartition().getSubsetIds();
-  const auto map_id = scc.getPartition().subsetSizeMap();
-  std::map<int, int>::iterator it;
-  for (it = map_id.begin(); it != map_id.end(); it++)
-    {
-      // we keep ids of scc with more than one temporal vertex
-      if(it->second > 1)
-        inf_scc.inserts(it->first);
-    }
-  std::unordered_set<int>::iterator itr;
-  for (itr = inf_scc.begin(); itr != inf_scc.end(); itr++)
-    {
-      NetworKit::BFS bfs(cond, (*itr), false, true);
-      bfs.run();
-      std::vector<NetworKit::node> stack = bfs.getNodesSortedByDistance();
-      for(NetworKit::node i : stack)
-          inf_scc.inserts(*i);
-    }
-  auto temp_inf = std::unordered_set<int>;
-  for (it = inf_scc.begin(); it != inf_scc.end(); itt++)
-    {
-      const auto elem = std::set<NetowrKit::index> getMembers(*it);
-      std::set<NetowrKit::index>::iterator itt;
-      for (itt = elem.begin(); itr != elem.end(); itr++)
-        {
-          G.g.removeNode(*itt);
-          temp_inf.inserts(*itt);
-        }
-    }
-  for(int i = 0; i < n*T; i++)
-    {
-      if (G.g.hasNode(i))
-        {
-          if (G.g.degreeOut(i) == 0)
-            {
-              G.sinks.inserts(i);
-              if( G.g.degreeIn(i) == 0)
-                {
-                  G.sources.inserts(i);
-                  G.g.removeNode(i);
-                }
-            }
-          else
-            {
-              if ( G.g.degreeIn(i) == 0)
-                G.sources.inserts(i)
-            }
-        }
-    }
-  auto clos_inf = infinite_closure(G, events, events_rev, temp_inf, cost, sbd, cmp, g);
-
-  return {temp_inf, clos_inf};
-}
-
-unordered_set<VertexAppearance> Infinite_closure(Predecessor& G, OptimalBetweennessData &sbd, double (*cost)(Path, int, double), bool (*cmp)(double, akt::Graph &), double n, std::unordered_set<int> &node_inf, akt::Graph &g)
-{
-  int T = events[events.size() -1];
-  unordered_set<VertexAppearance> res;
-  for (const auto& elem: node_inf) {
-    int i = events_rev[elem.t] + 1;
-    while(i < events.size() && G.g.hasNode(elem.v * T + elem.t) == false)
+  int T = g.events[g.events.size() -1];
+  std::unordered_set<int> res;
+  for (auto &elem: node_inf) {
+    int i = g.events_rev.at(elem%T) + 1;
+    while(i < g.events.size() && G.g.hasNode(elem/T + g.events[i]) == false)
       {
-        if (cmp(cost(sbd.opt_walk[elem.v][elem.t]), events[i], g) , sbd.cur_best[elem.v][events[i]])
+        if (cmp(cost(sbd.opt_walk[elem/T][elem%T], g.events[i], g) , sbd.cur_best[elem/T][g.events[i]]))
           {
-            res.inserts(VertexAppearance{v, events[i]});
+            res.insert(elem/T + g.events[i]);
           }
         i++;
       }
@@ -174,24 +112,88 @@ unordered_set<VertexAppearance> Infinite_closure(Predecessor& G, OptimalBetweenn
 }
 
 
+
+std::pair<std::unordered_set<int>, std::unordered_set<int>> RemoveInfiniteFromPredecessor(int s, Predecessor& G, OptimalBetweennessData& sbd, double (*cost)(Path, int, const akt::Graph &), bool (*cmp)(double, double), std::string walk_type, const akt::Graph & g)
+{
+  NetworKit::StronglyConnectedComponents scc(G.g);
+  scc.run();
+  NetworKit::Graph cond = condensationGraph(G, scc);
+  std::unordered_set<int> inf_scc;
+  const auto  partition = scc.getPartition();
+  const auto sizes = scc.getPartition().subsetSizes();
+  const auto ids = scc.getPartition().getSubsetIds();
+  const auto map_id = scc.getPartition().subsetSizeMap();
+  std::map<NetworKit::index, NetworKit::count>::const_iterator it;
+  for (it = map_id.begin(); it != map_id.end(); it++)
+    {
+      // we keep ids of scc with more than one temporal vertex
+      if(it->second > 1)
+        inf_scc.insert(it->first);
+    }
+  std::unordered_set<int>::iterator itr;
+  for (itr = inf_scc.begin(); itr != inf_scc.end(); itr++)
+    {
+      NetworKit::BFS bfs(cond, (*itr), false, true);
+      bfs.run();
+      std::vector<NetworKit::node> stack = bfs.getNodesSortedByDistance();
+      for(auto &i : stack)
+          inf_scc.insert(i);
+    }
+  std::unordered_set<int > temp_inf;
+  for (auto &itr : inf_scc)
+    {
+      const auto elem = partition.getMembers(itr);
+      for (auto &itt : elem)
+        {
+          G.g.removeNode(itt);
+          temp_inf.insert(itt);
+        }
+    }
+  int T = g.maximalTimestep();
+  for(int i = 0; i < g.N()*T; i++)
+    {
+      if (G.g.hasNode(i))
+        {
+          if (G.g.degreeOut(i) == 0)
+            {
+              G.sinks.insert(i);
+              if( G.g.degreeIn(i) == 0)
+                {
+                  G.sources.insert(i);
+                  G.g.removeNode(i);
+                }
+            }
+          else
+            {
+              if ( G.g.degreeIn(i) == 0)
+                G.sources.insert(i);
+            }
+        }
+    }
+  auto clos_inf = Infinite_closure(G, sbd, cost, cmp, temp_inf, g);
+
+  return {temp_inf, clos_inf};
+}
+
+
 void volumePathAtRec(int s,int e,Predecessor& G,OptimalBetweennessData &sbd, int T)
 {
-  if(sbd.sigmadot[VertexAppearance{e/T,e%T}] != 0)
+  if(sbd.sigmadot[e/T][e%T] != 0)
     return;
   if(e/T == s)
-    sbd.sigmadot[VertexAppearance{e/T,e%T}] = 1;
+    sbd.sigmadot[e/T][e%T] = 1;
   else
     {
       unsigned long long res = 0;
-      G.g->forInEdgesOf(e, [&](node u, edgeweight w)
+      G.g.forInEdgesOf(e, [&](NetworKit::node u, NetworKit::edgeweight w)
       {
-        volumePathAtRec(s,u,G.g,sbd,T);
+        volumePathAtRec(s,u,G,sbd,T);
         if(u/T == s)
           res += 1;
         else
-          res += sbd.sigmadot[u];
+          res += sbd.sigmadot[u/T][u%T];
       });
-      sigma[e] = res;
+      sbd.sigmadot[e/T][e%T] = res;
       if (sbd.cur_best[e/T][e%T] == sbd.optimalNode[e/T])
         {
           sbd.totalSigma[e/T] += res;
@@ -203,27 +205,26 @@ void volumePathAtRec(int s,int e,Predecessor& G,OptimalBetweennessData &sbd, int
 }
 
 
-void VolumePathAt(Predecessor& G, int s, set<NetworKit::index> sinks, OptimalBetweennessData &sbd)
+void VolumePathAt(Predecessor& G, int s, OptimalBetweennessData &sbd, const akt::Graph &g)
 {
-  std::set<NetowrKit::index>::iterator itt;
-  for (itt = G.sinks.begin(); itr != G.sinks.end(); itr++)
-      volumePathAtRec(s,e,G.g,sbd);
+  for (auto &itt : G.sinks)
+    volumePathAtRec(s,itt,G,sbd,g.maximalTimestep());
 }
 
-void OptimalSigma(int node, Predecessor &G, OptimalBetweennessData &sbd, const akt::Graph& s, double n, double (*cost)(Path, int, double))
-{
-  int T = s.maximalTimestep();
-  for(int k = 0; k < s.N(); k++)
+void OptimalSigma(int node, Predecessor &G, OptimalBetweennessData &sbd, const akt::Graph& g,  double (*cost)(Path, int, const akt::Graph& g), std::unordered_set<int> node_inf)
+{ //start function
+  int T = g.maximalTimestep();
+  for(int k = 0; k < g.N(); k++)
     {
       int pred = -1;
-      for (int ev = 0; ev < s.events.size(); ev ++) {
-          int t = s.events[ev];
+      for (int ev = 0; ev < g.events.size(); ev ++) {
+          int t = g.events[ev];
           if (node == k)
             {
-              if (sbd.sigmadot[VertexAppearance{k, t}] > 0 )
-                sbd.sigma[VertexAppearance{k, t}] = sbd.sigmadot[VertexAppearance{k, t}];
+              if (sbd.sigmadot[k][t] > 0 )
+                sbd.sigma[k][t] = sbd.sigmadot[k][t];
               else
-                sbd.sigma[VertexAppearance{k, t}] = 0;
+                sbd.sigma[k][t] = 0;
             }
           else
             {
@@ -231,36 +232,36 @@ void OptimalSigma(int node, Predecessor &G, OptimalBetweennessData &sbd, const a
                 {
                   if (G.g.hasNode(k*T + t))
                     {
-                      sbd.sigma[VertexAppearance{k, t}] = sbd.sigmadot[VertexAppearance{k, t}];
+                      sbd.sigma[k][t] = sbd.sigmadot[k][t];
                       pred = t;
                     }
                   else
-                      sbd.sigma[VertexAppearance{k, t}] = 0;
+                      sbd.sigma[k][t] = 0;
                 }
               else
                 {
                   if (G.g.hasNode(k*T + t))
                     {
-                      if(sbd.cur_best[k][t] == cost(sbd.opt_walk[k][pred], t, n))
+                      if(sbd.cur_best[k][t] == cost(sbd.opt_walk[k][pred], t, g))
                         {
-                          sbd.sigma[VertexAppearance{k, t}] = sbd.sigma[VertexAppearance{k, pred}] + sbd.sigmadot[VertexAppearance{k, t}];
+                          sbd.sigma[k][t] = sbd.sigma[k][pred] + sbd.sigmadot[k][t];
                           pred = t;
                         }
                       else
                         {
-                          sbd.sigma[VertexAppearance{k, t}] = sbd.sigmadot[VertexAppearance{k, t}];
+                          sbd.sigma[k][t] = sbd.sigmadot[k][t];
                           pred = t;
                         }
                     }
                   else
                     {
-                      sbd.sigma[VertexAppearance{k, t}] = sbd.sigma[VertexAppearance{k, pred}];
+                      sbd.sigma[k][t] = sbd.sigma[k][pred];
                     }
                 }
             }
-          if (node_inf.count(VertexAppearance{k,t}) == 1)
+          if (node_inf.count(k*T + t) == 1)
             {
-              sbd.sigma[VertexAppearance{k, t}] = std::numeric_limits<double>::infinity();
+              sbd.sigma[k][t] = std::numeric_limits<double>::infinity();
             }
         }
 
@@ -276,17 +277,17 @@ void computeDeltaRec(int s,int e,Predecessor& G,OptimalBetweennessData &sbd, int
   if (sbd.totalSigma[e/T] = std::numeric_limits<double>::infinity())
     sbd.deltasvvt[e/T][e%T] = 0;
 
-  G.g->forInEdgesOf(e, [&](node u, edgeweight w){computeDeltaRec(s,u,G.g,sbd,T);});
-  deltasvvt[e/T][e%T] = sbd.totalSigmaT[e/T][e%T] / sbd.totalSigma[e/T];
+  G.g.forInEdgesOf(e, [&](NetworKit::node u, NetworKit::edgeweight w){computeDeltaRec(s,u,G,sbd,T);});
+  sbd.deltasvvt[e/T][e%T] = sbd.totalSigmaT[e/T][e%T] / sbd.totalSigma[e/T];
   return;
 }
 
 
-void ComputeDeltaSvvt(Predecessor& G, int s, OptimalBetweennessData &sbd)
+void ComputeDeltaSvvt(Predecessor& G, int s, OptimalBetweennessData &sbd, const akt::Graph& g)
 {
-  std::set<NetowrKit::index>::iterator itt;
-  for (itt = G.sinks.begin(); itr != G.sinks.end(); itr++)
-    computeDeltaRec(s,e,G.g,sbd);
+  std::set<NetworKit::index>::iterator itt;
+  for (auto &itt : G.sinks)
+    computeDeltaRec(s,itt,G,sbd, g.maximalTimestep());
 }
 
 
@@ -294,67 +295,68 @@ void PredecessorGraphToOrdered(Predecessor& G, int  T, std::map<int, int> ev_rev
 {
   //   std::map<int, std::map<int, std::vector<int> > > ordered_neighb;
   G.g.forEdges(
-             [&](node x, node y, edgeid eid)
+               [&](NetworKit::node x, NetworKit::node y, NetworKit::edgeid eid)
              {
                int v = x/T;
                int t = x%T;
                int w = y/T;
                int tp = y%T;
-               if(G.g.ordered_neighb.count(x) == 1)
+               if(G.ordered_neighb.count(x) == 1)
                  {
-                   if (G.g.ordered_neighb[tp].count(tp) == 1)
-                     G.g.ordered_neighb[x][ev_rev[tp]].push_back(w);
+                   if (G.ordered_neighb[tp].count(tp) == 1)
+                     G.ordered_neighb[x][ev_rev[tp]].push_back(w);
                    else
                      {
                        std::vector<int> m;
                        m.push_back(w);
-                       G.g.ordered_neighb[x][ev_rev[tp]] = m;
+                       G.ordered_neighb[x][ev_rev[tp]] = m;
                      }
                  }
                else
                  {
-                   std::map<int, vector<int>> m;
-                   std::vector<int> p;
-                   p.push_back(w);
-                   G.g.ordered_neighb[x][ev_rev[tp]] = m;
+                   // std::map<int, std::vector<int>> m;
+                   // std::vector<int> p;
+                   // p.push_back(w);
+                   G.ordered_neighb[x][ev_rev[tp]].push_back(w);
                  }
 
 
              });
 
 }
-
-
-void GeneralContribution(const akt::Graph& g, Predecessor G, int s, OptimalBetweennessData& sbd , std::map<VertexAppearance, VertexAppearance> &preced, std::string walk_type)
-{
-  //check if need to order
-  for(auto star : G.sources) {
-    int v = star/T;
-    int t = star%T;
-    unordered_set<VertexAppearance> visited;
-    DeltaSvt(s, v, t, G.ordered_neighb, sbd, g, preced, walk_type, visited);
-  }
-}
-
-void DeltaSvt(int s, int v, int t, std::map<int, std::map<int, std::vector<int> > >& l_nei, OptimalBetweennessData& sbd, const akt::Graph& g, std::map<VertexAppearance, VertexAppearance> &preced , std::string walk_type, unordered_set<VertexAppearance> visited)
+void DeltaSvt(int v, int t, std::map<int, std::map<int, std::vector<int> > >& l_nei, OptimalBetweennessData& sbd, const akt::Graph& g, std::map<VertexAppearance, VertexAppearance> &preced , std::string walk_type, std::unordered_set<VertexAppearance> visited)
 {
   int T = g.maximalTimestep();
-  if (visited.contains(VertexAppearance {v,t}))
+  if (visited.count(VertexAppearance {v,t}) == 1)
     return;
   std::map<int, double> partial_sum;
   std::map<int, double> contrib_local;
   auto s = 0.0;
-  std::map<int, std::map<int, std::vector<int> > >::reverse_iterator rit;
-  for (rit=l_nei.rbegin(); rit!=l_nei.rend(); ++rit)
+  std::map<int, std::vector<int> >::reverse_iterator rit;
+  for (rit=l_nei[v*T + t].rbegin(); rit!=l_nei[v*T + t].rend(); ++rit)
     {
-      for(const auto& u: l_nei[v*T + t][rit->second])
+      for(const auto &u: l_nei[v*T + t][(rit->first)])
         {
-          int w = u/T;
-          int tp = u%T;
-          DeltaSvt(s, w, tp,  l_nei,  sbd, g, preced , walk_type, visited);
+          int w = u;
+          int tp = (rit->first);
+          DeltaSvt(w, tp,  l_nei,  sbd, g, preced , walk_type, visited);
           s += (sbd.sigma[v][t]/sbd.sigma[w][tp])*sbd.deltadot[w][tp];
-          partial_sum[rit->second] = s;
+          partial_sum[rit->first] = s;
         }
     }
   sbd.deltadot[v][t] = s + sbd.deltasvvt[v][t];
 }
+
+
+void GeneralContribution(const akt::Graph& g, Predecessor G, int s, OptimalBetweennessData& sbd , std::map<VertexAppearance, VertexAppearance> &preced, std::string walk_type)
+{
+  int T = g.maximalTimestep();
+  //check if need to order
+  for(auto star : G.sources) {
+    int v = star/T;
+    int t = star%T;
+    std::unordered_set<VertexAppearance> visited;
+    DeltaSvt(v, t, G.ordered_neighb, sbd, g, preced, walk_type, visited);
+  }
+}
+

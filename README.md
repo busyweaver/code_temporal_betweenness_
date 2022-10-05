@@ -1,5 +1,7 @@
 # Temporal Betweenness Algorithms Implementation
-
+Check that cmake version is >= 3.5
+replace in src/cmake/libs.cmake the link https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz link with https://boostorg.jfrog.io/artifactory/main/release/1.70.0/source/boost_1_70_0.tar.gz
+for networkit download the source code of ttmath and place it in /usr/include
 ## How to build
 
 - `mkdir build.build`

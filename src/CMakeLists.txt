@@ -4,11 +4,11 @@ include (cmake/libs.cmake)
 
 set(CMAKE_CXX_FLAGS " -std=c++17 -pedantic -O3 ${CMAKE_CXX_FLAGS}")
 
-#find_package(Boost 1.36.0)
+#find_package(Boost 1.70.0)
 #if (Boost_FOUND)
-#  include_directories(${Boost_INCLUDE_DIR}/boost)
+#	include_directories(${Boost_INCLUDE_DIR}/boost)
 #else ()
-  install_boost(gcc program_options)
+install_boost(gcc program_options)
 #endif ()
 
 add_executable(btwBenchmark
@@ -17,7 +17,7 @@ add_executable(btwBenchmark
 	graph.cpp
   paths.cpp
   predecessor_graph.cpp
-  fibonacciheap.cpp
+  vertex_appearance.cpp
 )
 
-target_link_libraries(btwBenchmark boost_program_options)
+target_link_libraries(btwBenchmark boost_program_options -lnetworkit)

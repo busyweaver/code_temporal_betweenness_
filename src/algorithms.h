@@ -2,6 +2,7 @@
 #include "paths.h"
 #include "predecessor_graph.h"
 #include <unordered_set>
+
 namespace akt {
 	// Returns the shortest betweenness and shortest foremost betweenness (with strictness depending on the parameter)
 	std::pair<std::vector<double>, std::vector<double>> shortestBetweenness(const akt::Graph& g, bool strict);

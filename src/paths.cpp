@@ -2,7 +2,11 @@
 
 Path::Path(std::vector<int> * nod, std::vector<int> * time)
 {nodes = nod; times = time;
-  end = (*times).size();}
+  if (nodes == NULL)
+    end = -1;
+  else
+    end = (*times).size();
+}
 
 bool Path::is_empty() {return (nodes != NULL) && ((*nodes).size() == 0);}
 bool Path::is_none() {return nodes == NULL;}
