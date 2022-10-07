@@ -47,8 +47,7 @@ namespace std
        cur_best{ std::vector<std::vector<double>>(n, std::vector<double>(T, std::numeric_limits<double>::infinity())) },
       opt_walk{ std::vector<std::vector<Path*>>(n, std::vector<Path*>(T, (Path*) nullptr) ) },
       optimalNode{ std::vector<double>(n, std::numeric_limits<double>::infinity()) },
-      totalSigma{ std::vector<double>(n, 0) },
-      stack{ std::vector<VertexAppearance>() }
+      totalSigma{ std::vector<double>(n, 0) }
   { }
   OptimalBetweennessData(const akt::Graph& g)
     : OptimalBetweennessData(g.N(), g.T())
@@ -71,6 +70,4 @@ namespace std
   std::vector<double> optimalNode;
   // Number of shortests paths from a source to each vertex (*not* vertex __appearance__)
   std::vector<double> totalSigma;
-  // Stack of vertex apperances in order of their discovery with the bfs
-  std::vector<VertexAppearance> stack;
 };

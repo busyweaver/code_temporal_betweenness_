@@ -95,30 +95,27 @@ struct PrefixBetweennessData
 void reinitializeHelperStructOptimal(const akt::Graph& g, int s, OptimalBetweennessData& sbd)
 {
   // Reinitialize the appearance-based arrays (at the only relevant times)
-  for (auto it = g.edges_cbegin(); it != g.edges_cend(); ++it) {
-    auto te = *it;
-    sbd.deltasvvt[te.to][te.when] = 0.0;
-    sbd.sigmadot[te.to][te.when] = 0;
-    sbd.pre[te.to][te.when].clear();
-    sbd.totalSigmaT[te.to][te.when]=0;
-    sbd.cur_best[te.to][te.when]=std::numeric_limits<double>::infinity();
-    sbd.opt_walk[te.to][te.when]=nullptr;
-  }
   printf("okok\n");
+  int T = g.events.size();
   for (int n = 0; n < g.N(); n++) {
-    for (const auto& t: g.events) {
-      sbd.deltadot[n][g.events_rev.at(t)] = 0.0;
-      sbd.sigma[n][g.events_rev.at(t)] = 0;
+    for (int t = 0; t<T ; t++) {
+      sbd.deltasvvt[n][t] = 0.0;
+      sbd.deltadot[n][t] = 0.0;
+
+      sbd.opt_walk[n][t]=nullptr;
+      sbd.pre[n][t].clear();
+      sbd.cur_best[n][t]=std::numeric_limits<double>::infinity();
+
+      sbd.totalSigmaT[n][t]=0;
+      sbd.sigma[n][t] = 0;
+      sbd.sigmadot[n][t] = 0;
     }
   }
-  // Reinitialize the vertex-based arrays
-  std::transform(sbd.optimalNode.cbegin(), sbd.optimalNode.cend(), sbd.optimalNode.begin(), [](auto i) { return std::numeric_limits<double>::infinity(); });
-  std::transform(sbd.totalSigma.cbegin(), sbd.totalSigma.cend(), sbd.totalSigma.begin(), [](auto i) { return 0; });
-  // Reinitialize the stack (though it should be empty already, so it's just a sanity operation)
-  sbd.stack.clear();
-  // Initialize the elements involving the source to appropriate values (if different from the defaults)
 
-
+  for (int n = 0; n < g.N(); n++) {
+    sbd.totalSigma[n] = 0;
+    sbd.optimalNode[n] = std::numeric_limits<double>::infinity();
+  }
 
 }
 
@@ -181,7 +178,8 @@ void shortestComputeDistancesSigmas(const akt::Graph& g, bool strict, int s, Sho
   }
 }
 
-void display_curbest(OptimalBetweennessData& sbd)
+
+void display_tot(OptimalBetweennessData& sbd)
 {
   printf("cur_best\n");
   for (int i = 0; i < sbd.cur_best.size(); i++)
@@ -213,6 +211,58 @@ for (int i = 0; i < sbd.cur_best.size(); i++)
      std::cout<< " " << "\n";
    }
 
+ printf("sigma\n");
+ for (int i = 0; i < sbd.sigma.size(); i++)
+   {
+     for (int j = 0; j < sbd.sigma[i].size(); j++)
+       {
+         std::cout<<" " <<sbd.sigma[i].at(j); 
+       }
+     std::cout<< " " << "\n";
+   }
+
+ printf("deltasvvt\n");
+ for (int i = 0; i < sbd.deltasvvt.size(); i++)
+   {
+     for (int j = 0; j < sbd.deltasvvt[i].size(); j++)
+       {
+         std::cout<<" " <<sbd.deltasvvt[i].at(j); 
+       }
+     std::cout<< " " << "\n";
+   }
+
+ printf("deltadot\n");
+ for (int i = 0; i < sbd.deltadot.size(); i++)
+   {
+     for (int j = 0; j < sbd.deltadot[i].size(); j++)
+       {
+         std::cout<<" " <<sbd.deltadot[i].at(j); 
+       }
+     std::cout<< " " << "\n";
+   }
+ printf("betweenness\n");
+ for (int i = 0; i < sbd.betweenness.size(); i++)
+   {
+     for (int j = 0; j < sbd.betweenness[i].size(); j++)
+       {
+         std::cout<<" " <<sbd.betweenness[i].at(j); 
+       }
+     std::cout<< " " << "\n";
+   }
+
+ printf("optimal_node\n");
+ for (int i = 0; i < sbd.optimalNode.size(); i++)
+   {
+     std::cout<<" " <<sbd.optimalNode[i];
+   }
+
+
+ printf("\nsigma_total\n");
+ for (int i = 0; i < sbd.totalSigma.size(); i++)
+   {
+     std::cout<<" " <<sbd.totalSigma[i];
+   }
+ printf("\n");
 
 }
 
@@ -284,7 +334,7 @@ void relax_resting(int b, int t, int tp, OptimalBetweennessData& sbd, FibonacciH
           }
 }
 
-void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, FibonacciHeap &q,   std::map<VertexAppearance, node*> &q_nodes, bool (*cmp)(double, double),double (*cost)(Path*, int, const akt::Graph&), const akt::Graph& g)
+void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, FibonacciHeap &q,   std::map<VertexAppearance, node*> &q_nodes, bool (*cmp)(double, double),double (*cost)(Path*, int, const akt::Graph&), const akt::Graph& g, std::map<VertexAppearance, std::tuple<int,std::vector<double>,std::vector<double>> > &counted)
 {
   if (sbd.pre[a][t].size() == 0)
     return;
@@ -317,6 +367,24 @@ void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, FibonacciHe
               {
                 printf("bien\n");
                 q_nodes[VertexAppearance{b,g.events[tp]}] = q.insert(p);
+                if (counted.count(VertexAppearance{b,g.events[tp]}) ==0)
+                  {
+                    std::vector<double> m1;
+                    m1.push_back(cold);
+                    std::vector<double> m2;
+                    m2.push_back(cnew);
+                    counted[VertexAppearance{b,g.events[tp]}]=std::make_tuple(1,m1,m2); 
+                  }
+
+                else
+                  {
+                    auto [nb,co,cn] = counted[VertexAppearance{b,g.events[tp]}];
+                    nb = nb+1;
+                    co.push_back(cold);
+                    cn.push_back(cnew);
+                    counted[VertexAppearance{b,g.events[tp]}] = std::make_tuple(nb,co,cn);
+                  }
+
                 q.display();
               }
 
@@ -324,25 +392,25 @@ void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, FibonacciHe
               sbd.optimalNode[b] = cnew;
           }
   if (cnew == sbd.cur_best[b][tp])
-    sbd.pre[b][tp].insert(VertexAppearance{a,g.events[t]});
+    sbd.pre[b][tp].insert(VertexAppearance{a,t});
   printf("fin\n");
 }
 
 void optimalComputeDistancesSigmas(const akt::Graph& g, bool strict, int s, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), bool (*cmp)(double, double), std::string walk_type  )
 {
   std::map<VertexAppearance, node* > q_nodes;
+  std::map<VertexAppearance, std::tuple<int,std::vector<double>,std::vector<double>> > counted;
   FibonacciHeap q;
   printf("salut\n");
   optimal_initialization(g, s, sbd, cost, q, q_nodes);
   std::pair<double,std::pair<int,int>> tmp = q.getMinimum();
   int j = 0;
   while (!q.isEmpty() ) {
-    display_curbest(sbd);
     printf("hello\n");
     q.display();
     //auto min_tmp = q.getMinimum();
-    //q_nodes.erase(pait_to_vertex())
     auto min_elem = q.removeMinimum();
+    q_nodes.erase(VertexAppearance{min_elem.second.first, min_elem.second.second});
     fflush(stdout);
     VertexAppearance cur = pair_to_vertexappearance(min_elem);
     printf("vertex %d\n",cur.v);
@@ -357,18 +425,32 @@ void optimalComputeDistancesSigmas(const akt::Graph& g, bool strict, int s, Opti
     }
 
     }
-
-    
     for (int t = g.events_rev.at(cur.time) + strict; (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[cur.v][t].nextTimestep) {
       for (auto w : g.adjacencyList()[cur.v][t].neighbours) {
         if (walk_type == "active")
           relax_resting(cur.v, g.events_rev.at(cur.time), g.events[t], sbd, q, q_nodes, cmp, cost, g);
         printf("v = %d, t = %d,  w = %d tp = %d", cur.v ,cur.time, w, g.events[t]);
-        relax(cur.v,w,g.events_rev.at(cur.time),t,sbd,q,q_nodes,cmp,cost,g);
+        relax(cur.v,w,g.events_rev.at(cur.time),t,sbd,q,q_nodes,cmp,cost,g,counted);
         }
       }
     printf("normalement boucle après %d,\n",q.isEmpty());
     j++;
+    std::cout << cur.v << "------------------------------------------------------------------------>" << cur.time << " " << sbd.cur_best[cur.v][g.events_rev.at(cur.time)] << "\n";
+    }
+  for (auto &it : counted)
+    {
+      if(std::get<0>(it.second) > 1)
+        {
+          std::cout << "////////////////////////////////////////////////////////////////"<< it.first.v <<" " << it.first.time << " index "<<  g.events_rev.at(it.first.time) << " number of times "<< std::get<0>(it.second) << " \n";
+          auto [nb,co,cn] = it.second;
+          for (auto &it : co)
+            std::cout << it << " ";
+          std::cout << "\n";
+          for (auto &it : cn)
+            std::cout << it << " ";
+          std::cout << "\n";
+        }
+
     }
 }
 
@@ -406,13 +488,38 @@ void shortestEmptyStackUpdateBetweenness(int s, ShortestBetweennessData& sbd, st
   }
 }
 
-void UpdateBetweenness(OptimalBetweennessData& sbd, int n, const std::vector<int> &events)
+void UpdateBetweenness(OptimalBetweennessData& sbd, int n, int T)
 {
   for (int i = 0; i < n; i++)
     {
-      for (const auto& t: events) {
+      for (int t = 0; t<T;t++) {
         sbd.betweenness[i][t] = sbd.betweenness[i][t] + sbd.deltadot[i][t];
       }
+    }
+}
+
+void copy_sigmadot_in_sigma(OptimalBetweennessData& sbd)
+{
+  for (int i = 0; i < sbd.sigma.size(); i++)
+    {
+      for (int j = 0; j < sbd.sigma[i].size(); j++)
+        {
+          sbd.sigma[i][j] = sbd.sigmadot[i][j]; 
+        }
+    }
+}
+void print_pred_neighbour(Predecessor &G, const akt::Graph& g)
+{
+  int T = g.events.size();
+  for (auto &it : G.ordered_neighb )
+    {
+      std::cout << "node  " << it.first/T << g.events[it.first%T] << "\n";
+      for (auto &itt: it.second)
+        {
+          std::cout << "   time" << g.events[itt.first] << "\n";
+          for(auto &ittt : itt.second)
+            std::cout << "      node" << ittt << "\n";
+        }
     }
 }
 
@@ -425,14 +532,20 @@ void optimalUpdateBetweenness(int s, const akt::Graph& g, OptimalBetweennessData
   p = RemoveInfiniteFromPredecessor(s, G, sbd, cost, cmp, walk_type, g);
    printf("alo2\n");
     VolumePathAt(G, s, sbd, g);
-   display_curbest(sbd);
-  p.first.insert(p.second.begin(), p.second.end());
-  OptimalSigma(s, G, sbd, g, cost, p.first);
-  // ComputeDeltaSvvt(G, s, sbd, g);
-  // PredecessorGraphToOrdered(G, g.maximalTimestep(), g.events_rev);
-  // std::map<VertexAppearance, VertexAppearance> preced;
-  // GeneralContribution(g, G, s, sbd, preced, walk_type);
-  // UpdateBetweenness(sbd, g.N(),  g.events);
+   p.first.insert(p.second.begin(), p.second.end());
+   if(walk_type == "active")
+     OptimalSigma(s, G, sbd, g, cost, p.first);
+   else
+     copy_sigmadot_in_sigma(sbd);
+  ComputeDeltaSvvt(G, s, sbd, g);
+  //display_tot(sbd);
+  PredecessorGraphToOrdered(G, g.events.size(), g.events_rev);
+  print_pred_neighbour(G, g);
+  std::map<VertexAppearance, VertexAppearance> preced;
+  GeneralContribution(g, G, s, sbd, preced, walk_type);
+  //display_tot(sbd);
+  UpdateBetweenness(sbd, g.N(),  g.events.size());
+  display_tot(sbd);
 }
 
 void prefixDoForemostBasedSearch(const akt::Graph& g, int s, PrefixBetweennessData& pbd)
@@ -502,11 +615,11 @@ namespace akt {
     printf("setting ok general\n");
     // Stores the betweenness values; initialize to 1 because of the formula for betweenness having a constant +1
     for (int s = 0; s < 1; ++s) {
-      printf("new treatment\n");
+      printf("*********************** new treatment *****************************\n");
       reinitializeHelperStructOptimal(g, s, sbd);
       optimalComputeDistancesSigmas(g, strict, s, sbd, cost2, cmp2, walk_type);
-      //display_curbest(sbd);
       optimalUpdateBetweenness(s, g, sbd, cost2, cmp2, walk_type);
+
     }
     return sbd.betweenness;
   }
