@@ -17,12 +17,12 @@ class Predecessor {
 
 
 
-std::pair<std::unordered_set<int>, std::unordered_set<int>> RemoveInfiniteFromPredecessor(int s, Predecessor& G, OptimalBetweennessData& sbd, double (*cost)(Path, int, const akt::Graph &), bool (*cmp)(double, double), std::string walk_type, const akt::Graph & g);
+std::pair<std::unordered_set<int>, std::unordered_set<int>> RemoveInfiniteFromPredecessor(int s, Predecessor& G, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph &), bool (*cmp)(double, double), std::string walk_type, const akt::Graph & g);
 
 
 void VolumePathAt(Predecessor& G, int s, OptimalBetweennessData &sbd, const akt::Graph &g);
 
-void OptimalSigma(int node, Predecessor &G, OptimalBetweennessData &sbd, const akt::Graph& g, double (*cost)(Path, int, const akt::Graph&), std::unordered_set<int> node_inf);
+void OptimalSigma(int node, Predecessor &G, OptimalBetweennessData &sbd, const akt::Graph& g, double (*cost)(Path*, int, const akt::Graph&), std::unordered_set<int> node_inf);
 
 void ComputeDeltaSvvt(Predecessor& G, int s, OptimalBetweennessData &sbd, const akt::Graph&);
 void PredecessorGraphToOrdered(Predecessor& G, int  T, std::map<int, int> ev_rev);

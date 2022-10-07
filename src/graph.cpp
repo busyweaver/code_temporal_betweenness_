@@ -3,7 +3,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <tuple>
-
+#include<iostream>
 // Removes timesteps (i.e. "compresses" the time) where there are no temporal edges
 void removeBoringTimesteps(akt::TemporalEdgeSet& edges)
 {
@@ -38,8 +38,9 @@ namespace akt {
         //    : (lhs.to < rhs.to));
     }
 
-    std::pair<Graph, std::vector<std::string>> readReduceGraph(std::istream& is, bool directed)
+  std::pair<Graph, std::vector<std::string>> readReduceGraph(std::istream& is, bool directed)
     {
+      std::set<int>* events = new std::set<int>;
         TemporalEdgeSet edgesRead(&temporalEdgeLessTimewise);
         std::unordered_map<std::string, int> nodeIds;
         std::vector<std::string> reverseNodeIds;
@@ -49,6 +50,7 @@ namespace akt {
             std::string from, to;
             int w;
             iss >> from >> to >> w;
+            events->insert(w);
             if ((from.empty()) || (to.empty()))
                 continue;
             if (nodeIds.count(from) < 1) {
@@ -69,7 +71,9 @@ namespace akt {
                 edgesRead.insert(TemporalEdge{ t, f, w });
         }
         removeBoringTimesteps(edgesRead);
+        for (auto &t : nodeIds)
+          std::cout << t.first << "," << t.second;
 
-        return { Graph(noNodes, edgesRead.crbegin()->when, edgesRead), reverseNodeIds };
+        return { Graph(noNodes, edgesRead.crbegin()->when, edgesRead, events), reverseNodeIds };
     }
 }

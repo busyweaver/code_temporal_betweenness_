@@ -67,6 +67,7 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, const BenchmarkSettings& bs)
       std::clog << "Starting general." << std::endl;
       auto start = std::chrono::high_resolution_clock::now();
       res.optimal = optimalBetweenness(g, false, "shortestfastest", "le", "passive");
+      printf("finiiiiiiiiiii\n");
       auto end = std::chrono::high_resolution_clock::now();
       std::chrono::duration<double> time = end - start;
       res.optimalTime = time.count();

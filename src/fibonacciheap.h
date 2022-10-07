@@ -20,34 +20,42 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include <iostream>     // std::cout
 #include <string>
+std::ostream& operator<< (std::ostream& os, const std::pair<double,std::pair<int,int>> & lhs)
+{
+  os << lhs.first
+     << ", "
+     << lhs.second.first
+     << ", "
+     << lhs.second.second;
+  return os; 
+}
+class FibonacciHeap;
 
-template <class V> class FibonacciHeap;
-
-template <class V> struct node {
+ struct node {
 private:
-	node<V>* prev;
-	node<V>* next;
-	node<V>* child;
-	node<V>* parent;
-	V value;
+	node* prev;
+	node* next;
+	node* child;
+	node* parent;
+	std::pair<double,std::pair<int,int>> value;
 	int degree;
 	bool marked;
 public:
-	friend class FibonacciHeap<V>;
-	node<V>* getPrev() {return prev;}
-	node<V>* getNext() {return next;}
-	node<V>* getChild() {return child;}
-	node<V>* getParent() {return parent;}
-	V getValue() {return value;}
+	friend class FibonacciHeap;
+	node* getPrev() {return prev;}
+	node* getNext() {return next;}
+	node* getChild() {return child;}
+	node* getParent() {return parent;}
+   std::pair<double,std::pair<int,int>> getValue() {return value;}
 	bool isMarked() {return marked;}
 
 	bool hasChildren() {return child;}
 	bool hasParent() {return parent;}
 };
 
-template <class V> class FibonacciHeap {
+ class FibonacciHeap {
 protected:
-	node<V>* heap;
+	node* heap;
 public:
 
 	FibonacciHeap() {
@@ -58,8 +66,8 @@ public:
 			_deleteAll(heap);
 		}
 	}
-	node<V>* insert(V value) {
-		node<V>* ret=_singleton(value);
+	node* insert(std::pair<double,std::pair<int,int>> value) {
+		node* ret=_singleton(value);
 		heap=_merge(heap,ret);
 		return ret;
 	}
@@ -72,28 +80,34 @@ public:
 		return heap==NULL;
 	}
 
-	V getMinimum() {
+	std::pair<double,std::pair<int,int>> getMinimum() {
 		return heap->value;
 	}
 
-	V removeMinimum() {
-		node<V>* old=heap;
+	std::pair<double,std::pair<int,int>> removeMinimum() {
+    printf("remove\n");
+		node* old=heap;
 		heap=_removeMinimum(heap);
-		V ret=old->value;
+		//std::pair<double,std::pair<int,int>> ret=old->value;
+    std::pair<double,std::pair<int,int>> ret;
+    ret.first = old->value.first;
+    ret.second.first = old->value.second.first;
+    ret.second.second = old->value.second.second;
+    std::cout << ret << "\n";
 		delete old;
 		return ret;
 	}
 
-	void decreaseKey(node<V>* n,V value) {
+	void decreaseKey(node* n,std::pair<double,std::pair<int,int>> value) {
 		heap=_decreaseKey(heap,n,value);
 	}
 
-	node<V>* find(V value) {
+	node* find(std::pair<double,std::pair<int,int>> value) {
 		return _find(heap,value);
 	}
 
 	void display() const {	// function code adapted from GO code just below C++
-		node<V>* p = heap;
+		node* p = heap;
 		if (p == NULL) {
 			std::cout << "The Heap is Empty" << std::endl;
 			return;
@@ -104,12 +118,12 @@ public:
 	}
 
 private:
-	node<V>* _empty() {
+	node* _empty() {
 		return NULL;
 	}
 
-	node<V>* _singleton(V value) {
-		node<V>* n=new node<V>;
+	node* _singleton(std::pair<double,std::pair<int,int>> value) {
+		node* n=new node;
 		n->value=value;
 		n->prev=n->next=n;
 		n->degree=0;
@@ -119,16 +133,16 @@ private:
 		return n;
 	}
 
-	node<V>* _merge(node<V>* a,node<V>* b) {
+	node* _merge(node* a,node* b) {
 		if(a==NULL)return b;
 		if(b==NULL)return a;
 		if(a->value>b->value) {
-			node<V>* temp=a;
+			node* temp=a;
 			a=b;
 			b=temp;
 		}
-		node<V>* an=a->next;
-		node<V>* bp=b->prev;
+		node* an=a->next;
+		node* bp=b->prev;
 		a->next=b;
 		b->prev=a;
 		an->prev=bp;
@@ -136,11 +150,11 @@ private:
 		return a;
 	}
 
-	void _deleteAll(node<V>* n) {
+	void _deleteAll(node* n) {
 		if(n!=NULL) {
-			node<V>* c=n;
+			node* c=n;
 			do {
-				node<V>* d=c;
+				node* d=c;
 				c=c->next;
 				_deleteAll(d->child);
 				delete d;
@@ -148,16 +162,16 @@ private:
 		}
 	}
 	
-	void _addChild(node<V>* parent,node<V>* child) {
+	void _addChild(node* parent,node* child) {
 		child->prev=child->next=child;
 		child->parent=parent;
 		parent->degree++;
 		parent->child=_merge(parent->child,child);
 	}
 
-	void _unMarkAndUnParentAll(node<V>* n) {
+	void _unMarkAndUnParentAll(node* n) {
 		if(n==NULL)return;
-		node<V>* c=n;
+		node* c=n;
 		do {
 			c->marked=false;
 			c->parent=NULL;
@@ -165,7 +179,7 @@ private:
 		}while(c!=n);
 	}
 
-	node<V>* _removeMinimum(node<V>* n) {
+	node* _removeMinimum(node* n) {
 		_unMarkAndUnParentAll(n->child);
 		if(n->next==n) {
 			n=n->child;
@@ -175,11 +189,11 @@ private:
 			n=_merge(n->next,n->child);
 		}
 		if(n==NULL)return n;
-		node<V>* trees[64]={NULL};
+		node* trees[64]={NULL};
 		
 		while(true) {
 			if(trees[n->degree]!=NULL) {
-				node<V>* t=trees[n->degree];
+				node* t=trees[n->degree];
 				if(t==n)break;
 				trees[n->degree]=NULL;
 				t->prev->next=t->next;
@@ -204,7 +218,7 @@ private:
 			}
 			n=n->next;
 		}
-		node<V>* min=n;
+		node* min=n;
 		do {
 			if(n->value<min->value)min=n;
 			n=n->next;
@@ -212,7 +226,7 @@ private:
 		return min;
 	}
 
-	node<V>* _cut(node<V>* heap,node<V>* n) {
+	node* _cut(node* heap,node* n) {
 		if(n->next==n) {
 			n->parent->child=NULL;
 		} else {
@@ -226,10 +240,10 @@ private:
 		return _merge(heap,n);
 	}
 
-	node<V>* _decreaseKey(node<V>* heap,node<V>* n,V value) {
+	node* _decreaseKey(node* heap,node* n,std::pair<double,std::pair<int,int>> value) {
 		if(n->value<value)return heap;
 		n->value=value;
-		node<V>* parent = n->parent;
+		node* parent = n->parent;
 		if(parent != nullptr && n->value < parent->value) {
 			heap=_cut(heap,n);
 			n->parent=NULL;
@@ -245,21 +259,21 @@ private:
 		return heap;
 	}
 
-	node<V>* _find(node<V>* heap,V value) {
-		node<V>* n=heap;
+	node* _find(node* heap,std::pair<double,std::pair<int,int>> value) {
+		node* n=heap;
 		if(n==NULL)return NULL;
 		do {
 			if(n->value==value)return n;
-			node<V>* ret=_find(n->child,value);
+			node* ret=_find(n->child,value);
 			if(ret)return ret;
 			n=n->next;
 		}while(n!=heap);
 		return NULL;
 	}
 
-	void _display_tree(node<V>* n, std::string pre) const {
+	void _display_tree(node* n, std::string pre) const {
 		std::string pc = "│  ";
-		node<V>* x = n;
+		node* x = n;
 		do {
 			if (x->next != n) {
 				std::cout << pre << "├─";

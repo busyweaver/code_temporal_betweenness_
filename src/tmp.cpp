@@ -67,4 +67,12 @@ int main(int argc, char* argv[]) {
   std::vector<std::vector<std::unordered_set<int>>> pre;
   pre = std::vector<std::vector<std::unordered_set<int>>>(10, std::vector<std::unordered_set<int>>(10)) ;
 
+
+  auto tmp = (std::vector<int>*) malloc(sizeof(std::vector<int>));
+  tmp->push_back(1);
+  tmp->push_back(999);
+  for (auto const &i: *tmp) {
+    std::cout << i << std::endl;
+  }
+
 }

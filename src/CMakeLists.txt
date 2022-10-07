@@ -20,4 +20,4 @@ add_executable(btwBenchmark
   vertex_appearance.cpp
 )
 
-target_link_libraries(btwBenchmark boost_program_options -lnetworkit)
+target_link_libraries(btwBenchmark boost_program_options -lnetworkit -g)

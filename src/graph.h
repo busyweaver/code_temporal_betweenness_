@@ -46,16 +46,16 @@ namespace akt {
         { }
 
         // Same as Graph(int, int) except also add the edges from the set in a more efficient manner than by repeated addEdge() calls
-        Graph(int noNodes, int maximalTimestep, const TemporalEdgeSet& tes)
+      Graph(int noNodes, int maximalTimestep, const TemporalEdgeSet& tes, std::set<int> *events_set)
             : Graph(noNodes, maximalTimestep)
         {
             edges = tes.size();
-            std::set<int> events_set;
+
             // Add edges (without caring about the nextTimestep field for now)
             for (const auto& te : tes)
               {
                 adj[te.from][te.when].neighbours.push_back(te.to);
-                events_set.insert(te.when);
+
               }
                 
             for (const auto& te : tes)
@@ -92,12 +92,12 @@ namespace akt {
                 }
               }
             }
-            std::map<int, int> events_rev;
-            std::vector<int> events(events_set.begin(), events_set.end());
+            printf("construction %ld\n",events_set->size());
+
+            events.assign(events_set->begin(), events_set->end());
             std::sort(events.begin(), events.end());
             for (int i = 0; i < events.size(); i++)
               events_rev[events[i]] = i;
-
         }
 
         // Adds the temporal edge to the graph
