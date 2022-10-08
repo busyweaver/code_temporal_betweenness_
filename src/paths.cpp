@@ -1,5 +1,5 @@
 #include "paths.h"
-
+#include<iostream>
 Path::Path(Path* p, int nod, int tim, int dep, int len)
 {
   this->parent = p;
@@ -11,9 +11,9 @@ Path::Path(Path* p, int nod, int tim, int dep, int len)
 
 Path::Path(Path* p,int b,int t)
 {
-  printf("path %p b %d t %d\n",(void*)p,b,t);
-  printf("debut\n");
-  fflush(stdout);
+  //printf("path %p b %d t %d\n",(void*)p,b,t);
+  //printf("debut\n");
+  //fflush(stdout);
   // if (this->nodes == nullptr || this->times == nullptr)
   //   {
   //     printf("probleme\n");
@@ -23,28 +23,29 @@ Path::Path(Path* p,int b,int t)
 
   if (p == nullptr)
     {
-      printf("parent null\n");
+      //printf("parent null\n");
       this->node = b;
       this->time = t;
       this->parent = p;
       this->depar = t;
       this->length = 0;
-      printf("size %d \n", this->length);
+      //printf("size %d \n", this->length);
       fflush(stdout); 
     }
   else
     {
-      printf("parent ok\n");
+      //printf("parent ok\n");
       this->node = b;
       this->time = t;
       this->parent = p;
- 
-
+      // if(p -> parent == nullptr)
+      //   this->depar = t;
+      this -> depar = parent -> depar;
       this-> length = this->parent->length +1;
-      this->depar = p->depar;
+
     }
-  printf("ici4\n");
-  fflush(stdout);
+  //printf("ici4\n");
+  //fflush(stdout);
 }
 // Path::Path(std::vector<int> * nod, std::vector<int> * time)
 // {this->nodes = nod; this->times = time;
@@ -78,13 +79,15 @@ void display(Path*m)
 {
   Path* tmp = m;
   int i =0;
-  printf("%p,%p\n",(void*)m, (void*)m->parent);
+  printf("\nPath\n");
   while(tmp->parent != nullptr && i<10)
     {
       printf("(%d <-(%d)- %d) ", tmp->node,tmp->time,tmp->parent->node);
       tmp = tmp->parent;
-      i ++;
+      i++;
     }
+  std::cout << "\nInfo path depar" << (*m).departure() << "arrival " << (*m).arrival() << "length " << (*m).getLength() << " \n";
+  printf("\nEnd Path\n");
 }
 
 
@@ -96,23 +99,24 @@ double co_sfp(Path* m, int t, const akt::Graph &g)
     }
   if ((*m).is_empty())
     return 0.0;
+  //std::cout << "t" << t << "(*m).departure())" << (*m).departure() << "(*m).getLength()" << (*m).getLength() << "\n";
   return g.N() * (t - (*m).departure()) + (*m).getLength();
 }
 
 
-double co_short(Path m, int t, double cons)
+double co_short(Path *m, int t,  const akt::Graph &g)
 {
-  if (m.is_none())
+  if (m == nullptr)
     return std::numeric_limits<double>::infinity();
-  return m.getLength();
+  return (*m).getLength();
 }
 
 
-double co_first_arrival(Path m, int t, double cons)
+double co_first_arrival(Path *m, int t,  const akt::Graph &g)
 {
-  if (m.is_none())
+  if (m == nullptr)
     return std::numeric_limits<double>::infinity();
-  if (m.is_empty())
+  if ((*m).is_empty())
     return 0.0;
-  return m.arrival();
+  return (*m).arrival();
 }

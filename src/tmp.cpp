@@ -74,5 +74,11 @@ int main(int argc, char* argv[]) {
   for (auto const &i: *tmp) {
     std::cout << i << std::endl;
   }
+  std::pair<int,int> x;
+  x.first = 5;
+  x.second = 10;
+  std::pair<int,int> y = x;
+  x.first = 7;
+  std::cout << x.first << " " << x.second << " "<<y.first << " " << y.second;
 
 }

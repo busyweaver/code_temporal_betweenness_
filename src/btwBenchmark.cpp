@@ -13,7 +13,7 @@ namespace po = boost::program_options;
 struct BenchmarkResults 
 {
     std::vector<double> shortest, foremost, strictShortest, strictForemost, prefix;
-  std::vector<std::vector<double>> optimal;
+  std::vector<double> optimal;
     int n;
     std::vector<std::string> inputIds;
     double nonStrictTime = -1.0;
@@ -106,11 +106,11 @@ BenchmarkResults readGraphRunBenchmarks(const BenchmarkSettings& bs)
 void outputBenchmarkResults(const BenchmarkSettings& bs, const BenchmarkResults& br)
 {
     std::clog << "Time for algorithms (in seconds):\n";
-    std::clog << "Non-strict, strict, prefix foremost\n";
-    std::clog << br.nonStrictTime << ", " << br.strictTime << ", " << br.prefixTime << '\n';
-    std::cout << br.nonStrictTime << ", " << br.strictTime << ", " << br.prefixTime << '\n';
+    std::clog << "Non-strict, strict, prefix foremost, optimal general time\n";
+    std::clog << br.nonStrictTime << ", " << br.strictTime << ", " << br.prefixTime << br.optimalTime<< '\n';
+    std::cout << br.nonStrictTime << ", " << br.strictTime << ", " << br.prefixTime <<" " <<'\n';
     std::clog << "Computed betweenness measures:\n";
-    std::clog << "Node, non-strict shortest, non-strict shortest foremost, strict shortest, strict shortest foremost, prefix betweenness\n";
+    std::clog << "Node, non-strict shortest, non-strict shortest foremost, strict shortest, strict shortest foremost, optimal general, prefix betweenness\n";
     for (int i = 0; i < br.n; ++i) {
         if (bs.originalNodeIds)
             std::cout << br.inputIds[i];
@@ -125,6 +125,10 @@ void outputBenchmarkResults(const BenchmarkSettings& bs, const BenchmarkResults&
             std::cout << br.strictShortest[i] << ", " << br.strictForemost[i] << ", ";
         else
             std::cout << "-1, -1, ";
+        if (bs.runGeneral)
+          std::cout << br.optimal[i] << ", ";
+        else
+          std::cout << "-1\n";
         if (bs.runPrefix)
             std::cout << br.prefix[i] << '\n';
         else

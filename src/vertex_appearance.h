@@ -40,6 +40,7 @@ namespace std
     : deltasvvt{ std::vector<std::vector<double>>(n, std::vector<double>(T, 0.0)) },
       deltadot{ std::vector<std::vector<double>>(n, std::vector<double>(T, 0.0)) },
       betweenness{ std::vector<std::vector<double>>(n, std::vector<double>(T, 0.0)) },
+      betweenness_exact{ std::vector<std::vector<double>>(n, std::vector<double>(T, 0.0)) },
       sigma{ std::vector<std::vector<double>>(n, std::vector<double>(T, 0)) },
       sigmadot{ std::vector<std::vector<int>>(n, std::vector<int>(T, 0)) },
       totalSigmaT{ std::vector<std::vector<int>>(n, std::vector<int>(T, 0)) },
@@ -47,7 +48,8 @@ namespace std
        cur_best{ std::vector<std::vector<double>>(n, std::vector<double>(T, std::numeric_limits<double>::infinity())) },
       opt_walk{ std::vector<std::vector<Path*>>(n, std::vector<Path*>(T, (Path*) nullptr) ) },
       optimalNode{ std::vector<double>(n, std::numeric_limits<double>::infinity()) },
-      totalSigma{ std::vector<double>(n, 0) }
+      totalSigma{ std::vector<double>(n, 0) },
+      totalBetweenness{ std::vector<double>(n, 0.0) }
   { }
   OptimalBetweennessData(const akt::Graph& g)
     : OptimalBetweennessData(g.N(), g.T())
@@ -55,7 +57,8 @@ namespace std
 
   // The \delta_{s\cdot} array on each iteration
   std::vector<std::vector<double>> deltadot;
-  std::vector<std::vector<double>> betweenness; 
+  std::vector<std::vector<double>> betweenness;
+    std::vector<std::vector<double>> betweenness_exact;
   std::vector<std::vector<double>> deltasvvt;
   // Numbers of shortest paths from a source to each vertex appearance
   std::vector<std::vector<double>> sigma;
@@ -70,4 +73,5 @@ namespace std
   std::vector<double> optimalNode;
   // Number of shortests paths from a source to each vertex (*not* vertex __appearance__)
   std::vector<double> totalSigma;
+    std::vector<double> totalBetweenness;
 };
