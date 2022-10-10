@@ -13,7 +13,7 @@ namespace po = boost::program_options;
 struct BenchmarkResults 
 {
     std::vector<double> shortest, foremost, strictShortest, strictForemost, prefix;
-  std::vector<double> optimal;
+  std::vector<std::vector<double>> results_general;
     int n;
     std::vector<std::string> inputIds;
     double nonStrictTime = -1.0;
@@ -31,10 +31,11 @@ struct BenchmarkSettings
     bool originalNodeIds = false;
     bool readFromFile = false;
   bool runGeneral = true;
-    std::string filename;
+  std::string filename;
+  std::string optimal_cost;
 };
 
-BenchmarkResults runBenchmarks(const akt::Graph& g, const BenchmarkSettings& bs)
+BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
 {
     BenchmarkResults res;
 
@@ -64,13 +65,16 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, const BenchmarkSettings& bs)
     }
 
     if (bs.runGeneral) {
-      std::clog << "Starting general." << std::endl;
-      auto start = std::chrono::high_resolution_clock::now();
-      res.optimal = optimalBetweenness(g, false, "shortestfastest", "le", "passive");
-      printf("finiiiiiiiiiii\n");
-      auto end = std::chrono::high_resolution_clock::now();
-      std::chrono::duration<double> time = end - start;
-      res.optimalTime = time.count();
+      std::vector<std::string> costs{"shortest", "shortestfastest"};
+      for (auto &st: costs)
+        {
+          std::clog << "Starting general." << std::endl;
+          auto start = std::chrono::high_resolution_clock::now();
+          results_general.insert(optimalBetweenness(g, false, st, "le", "passive"));
+          auto end = std::chrono::high_resolution_clock::now();
+          std::chrono::duration<double> time = end - start;
+          res.optimalTime = time.count();
+        }
     }
 
     return res;
@@ -86,7 +90,7 @@ auto readGraphFromFile(const BenchmarkSettings& bs)
     return akt::readReduceGraph(ifs, bs.edgesDirected);
 }
 
-BenchmarkResults readGraphRunBenchmarks(const BenchmarkSettings& bs)
+BenchmarkResults readGraphRunBenchmarks(BenchmarkSettings& bs)
 {
     // Not the perfect solution from the perspective of error handling (opening the file and not checking for success), but simple to write cleanly)
     auto [g, ids] = bs.readFromFile ? readGraphFromFile(bs) : akt::readReduceGraph(std::cin, bs.edgesDirected);
@@ -143,16 +147,16 @@ int main (int argc, char** argv)
     desc.add_options()
 		("help,h", "write help message")
 		("filename,f", po::value<std::string>(&(bs.filename)), "instead of reading the graph from stdin, use the file given in the argument")
+      ("optimal,opt", po::value<std::string>(&(bs.optimal_cost)), "choose a cost function for the general model if not specified shortest paths are selected")
         ("graph-directed,d", "interpret the edges in the graph as directed edges")
 		("no-strict,s", "don't run the strict shortest (foremost) betweenness algorithm")
+      ("no-general,gen", "don't run the general model")
 		("no-non-strict,n", "don't run the non-strict shortest (foremost) betweenness algorithm")
 		("no-prefix,p", "don't run the the strict prefix-foremost betweenness algorithm")
 		("original-node-ids,u", "in the output, use original node ids instead of the arbitrary integer ids assigned by the program");
-        
     po::variables_map vm;
 	po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
 	po::notify(vm);
-    
     if (vm.count("help")) {
         std::cout << desc << '\n';
         return 0;
@@ -162,6 +166,7 @@ int main (int argc, char** argv)
     bs.runStrict = vm.count("no-strict") <= 0;
     bs.runNonStrict = vm.count("no-non-strict") <= 0;
     bs.runPrefix = vm.count("no-prefix") <= 0;
+    bs.runGeneral = vm.count("no-general") <= 0;
     bs.originalNodeIds = vm.count("originalNodeIds") > 0;
     
     try {

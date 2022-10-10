@@ -319,7 +319,6 @@ void optimal_initialization(const akt::Graph& g, int s, OptimalBetweennessData& 
 
 VertexAppearance pair_to_vertexappearance(std::pair<double, std::pair<int,int>> min_elem)
 {
-  printf("la\n");
   auto pair_cur = min_elem.second;
   VertexAppearance cur;
   cur.v = pair_cur.first; cur.time = pair_cur.second;
@@ -328,27 +327,32 @@ VertexAppearance pair_to_vertexappearance(std::pair<double, std::pair<int,int>> 
 
 void relax_resting(int b, int t, int tp, OptimalBetweennessData& sbd, MinHeap &q, bool (*cmp)(double, double),double (*cost)(Path*, int, const akt::Graph&), const akt::Graph& g)
 {
-  // auto cnew = cost(sbd.opt_walk[b][t], tp, g);
-  // auto cold = cost(sbd.opt_walk[b][tp], tp, g);
-  // if (cmp(cnew, cold))
-  //         {
-  //           sbd.pre[b][tp].clear();
-  //           sbd.cur_best[b][tp] = cnew;
-  //           sbd.opt_walk[b][tp] = sbd.opt_walk[b][t];
-  //           std::pair<int,int> p_tmp ;
-  //           p_tmp.first = b;
-  //           p_tmp.second = tp;
-  //           std::pair<double,std::pair<int,int>>p;
-  //           p.first = cnew;
-  //           p.second = p_tmp;
-  //           if (q_nodes.count(VertexAppearance{b,tp}) == 1 )
-  //             q.decreaseKey(q_nodes[VertexAppearance{b,tp}], p);
-  //           else
-  //             q_nodes[VertexAppearance{b,tp}] = q.insert(p);
-  //           if (cnew < sbd.optimalNode[b])
-  //             sbd.optimalNode[b] = cnew;
-
-  //         }
+  auto cnew = cost(sbd.opt_walk[b][t], g.events[tp], g);
+  auto cold = cost(sbd.opt_walk[b][tp], g.events[tp], g);
+  if (cmp(cnew, cold))
+          {
+            sbd.pre[b][tp].clear();
+            sbd.cur_best[b][tp] = cnew;
+            sbd.opt_walk[b][tp] = sbd.opt_walk[b][t];
+            std::pair<int,int> p_tmp;
+            p_tmp.first = b;
+            p_tmp.second = tp;
+            std::pair<double,std::pair<int,int>> p;
+            p.first = cnew;
+            p.second = p_tmp;
+            std::pair<int,int> p_tmp2;
+            p_tmp2.first = b;
+            p_tmp2.second = tp;
+            std::pair<double,std::pair<int,int>> p2;
+            p2.first = cold;
+            p2.second = p_tmp2;
+            if (q.index_elem.count(p2) == 1 )
+              q.decreaseKey(q.index_elem[p2], p);
+            else
+              q.insertKey(p);
+            if (cnew < sbd.optimalNode[b])
+              sbd.optimalNode[b] = cnew;
+          }
 }
 
 void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, MinHeap &q, bool (*cmp)(double, double),double (*cost)(Path*, int, const akt::Graph&), const akt::Graph& g, std::map<VertexAppearance, std::tuple<int,std::vector<double>,std::vector<double>> > &counted)
@@ -385,39 +389,12 @@ void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, MinHeap &q,
             //printf("optimal\n");
             if (q.index_elem.count(p2) == 1 )
               {
-                // for(auto &it : q.index_elem)
-                //   std::cout << it.first << "->" << it.second;
-                // q.display();
-                // std::cout << "a diminuer" << p2 << p << "\n";
-                // printf("bien existant\n");
                 q.decreaseKey(q.index_elem[p2], p);
               }
 
             else
               {
-                //for(auto &it : q.index_elem)
-                //  std::cout << it.first << "->" << it.second;
-                //q.display();
-                //printf("bien\n");
                 q.insertKey(p);
-                // if (counted.count(VertexAppearance{b,tp}) ==0)
-                //   {
-                //     std::vector<double> m1;
-                //     m1.push_back(cold);
-                //     std::vector<double> m2;
-                //     m2.push_back(cnew);
-                //     counted[VertexAppearance{b,tp}]=std::make_tuple(1,m1,m2); 
-                //   }
-
-                // else
-                //   {
-                //     auto [nb,co,cn] = counted[VertexAppearance{b,tp}];
-                //     nb = nb+1;
-                //     co.push_back(cold);
-                //     cn.push_back(cnew);
-                //     counted[VertexAppearance{b,tp}] = std::make_tuple(nb,co,cn);
-                //     exit(-1);
-                //   }
               }
             if (cnew < sbd.optimalNode[b])
               sbd.optimalNode[b] = cnew;

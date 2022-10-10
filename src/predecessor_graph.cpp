@@ -192,7 +192,7 @@ void volumePathAtRec(int s,int e,Predecessor& G,OptimalBetweennessData &sbd, con
   if(e/T == s)
     {
       std::cout << "ici\n";
-      sbd.sigmadot[e/T][e%T] = 1;      
+      sbd.sigmadot[e/T][e%T] = 1;
     }
 
   else
