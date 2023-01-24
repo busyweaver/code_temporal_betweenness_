@@ -2,6 +2,10 @@
 Check that cmake version is >= 3.5
 replace in src/cmake/libs.cmake the link https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz link with https://boostorg.jfrog.io/artifactory/main/release/1.70.0/source/boost_1_70_0.tar.gz
 for networkit download the source code of ttmath and place it in /usr/include
+Add libnetworkit.so to the shared libraries in the variable LD_LIBRARY_PATH. Mine looks like this:
+/usr/local/lib/libnetworkit.so:/usr/local/libnetworkit.so:/lib:/usr/local/lib:/usr/local
+and then export the variable wit
+export LD_LIBRARY_PATH
 ## How to build
 
 - `mkdir build.build`
@@ -21,6 +25,8 @@ The project consists of:
  - Build (see `How to build` above)
  - Use the `./btwBenchmark` executable by either supplying a graph in the proper format (described below) to stdin or in a file by using the -f option
  - Use `./btwBenchmark -h` to see a list of available flags and options
+
+
 
 ## Graph format for input into the benchmark
 

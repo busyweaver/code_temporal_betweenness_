@@ -4,6 +4,9 @@
 #include <iostream>
 #include <utility>
 #include <tuple>
+#include <iostream>
+
+#include <vector>
 
 #include <boost/program_options.hpp>
 #include "algorithms.h"
@@ -70,7 +73,7 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
         {
           std::clog << "Starting general." << std::endl;
           auto start = std::chrono::high_resolution_clock::now();
-          results_general.insert(optimalBetweenness(g, false, st, "le", "passive"));
+          res.results_general.insert(res.results_general.begin(),optimalBetweenness(g, false, st, "le", "passive"));
           auto end = std::chrono::high_resolution_clock::now();
           std::chrono::duration<double> time = end - start;
           res.optimalTime = time.count();
@@ -130,7 +133,7 @@ void outputBenchmarkResults(const BenchmarkSettings& bs, const BenchmarkResults&
         else
             std::cout << "-1, -1, ";
         if (bs.runGeneral)
-          std::cout << br.optimal[i] << ", ";
+          std::cout << br.results_general[0][i] << ", ";
         else
           std::cout << "-1\n";
         if (bs.runPrefix)
