@@ -57,18 +57,21 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
                   {
                     std::cout << "non-strict_"+st.first+"_"+st.second;
                     res.results_general["non-strict_"+st.first+"_"+st.second] = optimalBetweenness(g, false, st.first, "le", st.second);
-                    //res.results_general.insert(std::pair<std::string, std::pair<std::vector<std::vector<double>>,std::vector<std::vector<double>>>>("non-strict_"+st.first+"_"+st.second, optimalBetweenness(g, false, st.first, "le", st.second)));
+                    auto end = std::chrono::high_resolution_clock::now();
+                    std::chrono::duration<double> time = end - start;
+                    res.optimalTime["non-strict_"+st.first+"_"+st.second] = time.count();
+                    std::cout << " "  << time.count() << "\n";
                   }
                 else
                   {
                     std::cout << "strict_"+st.first+"_"+st.second;
                     res.results_general["strict_"+st.first+"_"+st.second] = optimalBetweenness(g, true, st.first, "le", st.second);
+                    auto end = std::chrono::high_resolution_clock::now();
+                    std::chrono::duration<double> time = end - start;
+                    res.optimalTime["strict_"+st.first+"_"+st.second] = time.count();
+                    std::cout << " "  << time.count() << "\n";
                   }
 
-                auto end = std::chrono::high_resolution_clock::now();
-                std::chrono::duration<double> time = end - start;
-                res.optimalTime["strict_"+st.first+"_"+st.second] = time.count();
-                std::cout << " "  << time.count() << "\n";
               }
       }
     return res;

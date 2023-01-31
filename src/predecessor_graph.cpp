@@ -221,6 +221,7 @@ void volumePathAtRec(int s,int e,Predecessor& G,OptimalBetweennessData &sbd, con
         else
           res += sbd.sigmadot[u/T][u%T];
       });
+      printf("fin\n");
       sbd.sigmadot[e/T][e%T] = res;
       std::cout << "volume dot " <<e/T << " " << e%T << " = " << res << "\n";
 
@@ -357,7 +358,7 @@ void ComputeDeltaSvvt(Predecessor& G, int s, OptimalBetweennessData &sbd, const 
 }
 
 
-void PredecessorGraphToOrdered(Predecessor& G, int  T, std::map<int, int> ev_rev)
+void PredecessorGraphToOrdered(Predecessor& G, int  T)
 {
   //   std::map<int, std::map<int, std::vector<int> > > ordered_neighb;
   G.g.forEdges(
@@ -428,10 +429,10 @@ void IntermediaryNodes(int vt, int vtp, std::map<int,int> before,OptimalBetweenn
     }
 }
 
-void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Graph& g, std::map<int, int> &preced , std::string walk_type, std::unordered_set<int> visited)
+void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Graph& g, std::map<int, int> &preced , std::string walk_type, std::unordered_set<int>& visited)
 {
-  for(auto &elem : visited)
-    printf("**************************************************************///////\n");
+  // for(auto &elem : visited)
+  //   printf("**************************************************************///////\n");
   std::map<int, std::map<int, std::vector<int> > > l_nei = G.ordered_neighb;
   int T = g.events.size();
   std::cout << "new"  << v/T << " " << v%T << "\n";
@@ -460,6 +461,8 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
       for (auto &w : l_nei[v][tp])
         {
           std::cout << "next" << v/T << " " << v%T << " -> "  << w << " " << tp << "\n" << std::flush;
+          // char tmp;
+          // scanf("%c",&tmp);
 
           DeltaSvt(w*T + tp,  G,  sbd, g, preced , walk_type, visited);
           if(sbd.sigma[w][tp] == 0)

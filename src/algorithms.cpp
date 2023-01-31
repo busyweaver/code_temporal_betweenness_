@@ -5,7 +5,7 @@
 #include <numeric>
 #include <queue>
 //#include<networkit/graph/Graph.hpp>
-
+#include <networkit/components/StronglyConnectedComponents.hpp>
 bool temporalEdgeGreaterTimewise(const akt::TemporalEdge& lhs, const akt::TemporalEdge& rhs)
 {
   return (lhs.when != rhs.when) ? (lhs.when > rhs.when)
@@ -597,10 +597,21 @@ void optimalUpdateBetweenness(int s, const akt::Graph& g, OptimalBetweennessData
   else
     copy_sigmadot_in_sigma(sbd);
   ComputeDeltaSvvt(G, s, sbd, g);
+
+  // NetworKit::StronglyConnectedComponents scc(G.g);
+  // scc.run();
+  // const auto sizes = scc.getPartition().subsetSizes();
+  // for(auto &elem : sizes)
+  //   {
+  //     if(elem>1)
+  //       printf("NONNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN\n");
+  //     char tmp2;
+  //     scanf("%c",tmp2);
+  //   }
   //  display_tot(sbd);
   CompleteDelta(G, sbd, g);
   //display_tot(sbd);
-  PredecessorGraphToOrdered(G, g.events.size(), g.events_rev);
+  PredecessorGraphToOrdered(G, g.events.size());
   print_pred_neighbour(G, g);
   std::map<int,int> preced = BeforeNodes(G, g);
   //  auto T = g.events.size();
