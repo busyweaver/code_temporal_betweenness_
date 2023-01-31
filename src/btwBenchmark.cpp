@@ -40,7 +40,7 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
     BenchmarkResults res;
 
     std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
-    //    std::vector<std::pair<std::string,std::string>> cost_type{{"foremost","passive"}};
+    // std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}};
     for (auto &st: cost_type)
       {
             std::vector<std::string> strict;

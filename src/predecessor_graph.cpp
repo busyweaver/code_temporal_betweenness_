@@ -437,7 +437,10 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
   int T = g.events.size();
   std::cout << "new"  << v/T << " " << v%T << "\n";
   if (visited.count(v) == 1)
-    return;
+    {
+      std::cout << "stop immediately" <<   "\n" << std::flush;;
+      return;
+    }
   //  std::map<int, double> partial_sum;
   std::map<int, double> contrib_local;
   auto s = 0.0;
