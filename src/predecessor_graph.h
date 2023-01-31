@@ -28,4 +28,10 @@ void ComputeDeltaSvvt(Predecessor& G, int s, OptimalBetweennessData &sbd, const 
 void PredecessorGraphToOrdered(Predecessor& G, int  T, std::map<int, int> ev_rev);
 
 
-void GeneralContribution(const akt::Graph& g, Predecessor G, int s, OptimalBetweennessData& sbd , std::map<VertexAppearance, VertexAppearance> &preced, std::string walk_type);
+void GeneralContribution(const akt::Graph& g, Predecessor& G, int s, OptimalBetweennessData& sbd , std::map<int, int> &preced, std::string walk_type);
+
+void IntermediaryNodes(int vt, int vtp, std::map<int,int> before,OptimalBetweennessData& sbd, const akt::Graph& g, double s, int pred_time);
+
+std::map<int,int> BeforeNodes(Predecessor& G, const akt::Graph& g);
+
+void CompleteDelta(Predecessor& G, OptimalBetweennessData &sbd, const akt::Graph& g);

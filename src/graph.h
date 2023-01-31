@@ -5,6 +5,8 @@
 #include <vector>
 #include <map>
 #include <algorithm>    // std::sort
+#include <iostream>
+
 // Possible modification: make a space-time trade-off and store the set of edges in the graph
 // Possible modification: make a space-time trade-off and store the current edge of the iterator in Graph::EdgeConstIterator
 
@@ -46,18 +48,42 @@ namespace akt {
         { }
 
         // Same as Graph(int, int) except also add the edges from the set in a more efficient manner than by repeated addEdge() calls
-      Graph(int noNodes, int maximalTimestep, const TemporalEdgeSet& tes, std::set<int> *events_set)
+      Graph(int noNodes, int maximalTimestep, const TemporalEdgeSet& tes, std::vector<int>& ev, std::map<int, int>& ev_rev)
             : Graph(noNodes, maximalTimestep)
         {
+          // printf("construction %ld\n",events_set->size());
+
+
+          // int min = *events_set->begin();
+          // int max = *events_set->rbegin();
+          // std::cout << "min " << min << " max " << max << " eps " << eps <<"\n";
+          // if (eps > 0)
+          //   {
+          //     int j = min;
+          //     while(j < max)
+          //       {
+          //         events_set->insert(j);
+          //         j = j + eps;
+          //       } 
+          //   }
+          // events.assign(events_set->begin(), events_set->end());
+          // std::sort(events.begin(), events.end());
+
+          // for (int i = 0; i < events.size(); i++)
+          //   events_rev[events[i]] = i;
+          // printf("events now \n");
+          // for (auto &it : events)
+          //   {
+          //     std::cout << "event " << it << "\n";
+          //   }
+          events = ev;
+          events_rev = ev_rev;
             edges = tes.size();
 
             // Add edges (without caring about the nextTimestep field for now)
             for (const auto& te : tes)
-              {
                 adj[te.from][te.when].neighbours.push_back(te.to);
 
-              }
-                
             for (const auto& te : tes)
               adj[te.to][te.when].neighbours_inv.push_back(te.from);
             // Compute the nextTimestep values for all nodes at all times
@@ -92,12 +118,7 @@ namespace akt {
                 }
               }
             }
-            printf("construction %ld\n",events_set->size());
 
-            events.assign(events_set->begin(), events_set->end());
-            std::sort(events.begin(), events.end());
-            for (int i = 0; i < events.size(); i++)
-              events_rev[events[i]] = i;
         }
 
         // Adds the temporal edge to the graph
@@ -134,10 +155,10 @@ namespace akt {
         int M() const { return edges; }
 
         // Returns the number of timesteps in the graph (so maximalTimesteps() + 1)
-        int T() const { return lastTime + 1; }
+      int T() const { return events.size(); }
 
         // Returns the last timestep in the graph
-        int maximalTimestep() const { return lastTime; }
+      int maximalTimestep() const { return lastTime; }
         // maybe it can be improved, by taking the first real time step
         int minimalTimestep() const { return 0; }
 
@@ -276,6 +297,6 @@ namespace akt {
     // a f5 0
     // If directed == false, then the symmetric edge is added for every edge
     // Returns the Graph read alongside a table of mappings between the assigned node IDs to the original node IDs from the input
-    std::pair<Graph, std::vector<std::string>> readReduceGraph(std::istream& is, bool directed = false);
+  std::pair<Graph, std::vector<std::string>> readReduceGraph(std::istream& is, bool directed = false, double eps = 0);
 
 } // end namespace akt

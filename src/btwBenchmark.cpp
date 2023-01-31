@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include <vector>
+#include <string>
 
 #include <boost/program_options.hpp>
 #include "algorithms.h"
@@ -15,26 +16,22 @@ namespace po = boost::program_options;
 
 struct BenchmarkResults 
 {
-    std::vector<double> shortest, foremost, strictShortest, strictForemost, prefix;
-  std::vector<std::vector<double>> results_general;
-    int n;
-    std::vector<std::string> inputIds;
-    double nonStrictTime = -1.0;
-    double strictTime = -1.0;
-    double prefixTime = -1.0;
-  double optimalTime = -1.0;
+  int n;
+  std::map<std::string, std::pair<std::vector<std::vector<double>>,std::vector<std::vector<double>>>> results_general;
+  std::vector<std::string> inputIds;
+  std::map<std::string,double> optimalTime;
 };
 
 struct BenchmarkSettings
 {
-    bool runStrict = true;
-    bool runNonStrict = true;
-    bool runPrefix = true;
-    bool edgesDirected = false;
-    bool originalNodeIds = false;
-    bool readFromFile = false;
+  bool runStrict = false;
+  bool edgesDirected = false;
+  bool originalNodeIds = false;
+  bool readFromFile = false;
+  bool is_epsilon = false;
   bool runGeneral = true;
   std::string filename;
+  std::string epsilon;
   std::string optimal_cost;
 };
 
@@ -42,44 +39,38 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
 {
     BenchmarkResults res;
 
-    if (bs.runNonStrict) {
-        std::clog << "Starting non-strict shortest / shortest foremost." << std::endl;
-        auto start = std::chrono::high_resolution_clock::now();
-        std::tie(res.shortest, res.foremost) = shortestBetweenness(g, false);
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> time = end - start;
-        res.nonStrictTime = time.count();
-    }
-    if (bs.runStrict) {
-        std::clog << "Starting strict shortest / shortest foremost." << std::endl;
-        auto start = std::chrono::high_resolution_clock::now();
-        std::tie(res.strictShortest, res.strictForemost) = shortestBetweenness(g, true);
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> time = end - start;
-        res.strictTime = time.count();
-    }
-    if (bs.runPrefix) {
-        std::clog << "Starting prefix foremost." << std::endl;
-        auto start = std::chrono::high_resolution_clock::now();
-        res.prefix = prefixForemostBetweenness(g);
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> time = end - start;
-        res.prefixTime = time.count();
-    }
+    std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
+    //    std::vector<std::pair<std::string,std::string>> cost_type{{"foremost","passive"}};
+    for (auto &st: cost_type)
+      {
+            std::vector<std::string> strict;
+            strict.push_back("false");
+            if(bs.runStrict == true)
+                strict.push_back("true");
 
-    if (bs.runGeneral) {
-      std::vector<std::string> costs{"shortest", "shortestfastest"};
-      for (auto &st: costs)
-        {
-          std::clog << "Starting general." << std::endl;
-          auto start = std::chrono::high_resolution_clock::now();
-          res.results_general.insert(res.results_general.begin(),optimalBetweenness(g, false, st, "le", "passive"));
-          auto end = std::chrono::high_resolution_clock::now();
-          std::chrono::duration<double> time = end - start;
-          res.optimalTime = time.count();
-        }
-    }
 
+            for (auto &stri: strict)
+              {
+                std::clog << "Starting  " << st.first << " " << st.second << std::endl;
+                auto start = std::chrono::high_resolution_clock::now();
+                if(stri == "false")
+                  {
+                    std::cout << "non-strict_"+st.first+"_"+st.second;
+                    res.results_general["non-strict_"+st.first+"_"+st.second] = optimalBetweenness(g, false, st.first, "le", st.second);
+                    //res.results_general.insert(std::pair<std::string, std::pair<std::vector<std::vector<double>>,std::vector<std::vector<double>>>>("non-strict_"+st.first+"_"+st.second, optimalBetweenness(g, false, st.first, "le", st.second)));
+                  }
+                else
+                  {
+                    std::cout << "strict_"+st.first+"_"+st.second;
+                    res.results_general["strict_"+st.first+"_"+st.second] = optimalBetweenness(g, true, st.first, "le", st.second);
+                  }
+
+                auto end = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double> time = end - start;
+                res.optimalTime["strict_"+st.first+"_"+st.second] = time.count();
+                std::cout << " "  << time.count() << "\n";
+              }
+      }
     return res;
 }
 
@@ -90,7 +81,14 @@ auto readGraphFromFile(const BenchmarkSettings& bs)
         std::cout << "Error trying to open the file \"" << bs.filename << "\"\n";
         throw 1;
     }
-    return akt::readReduceGraph(ifs, bs.edgesDirected);
+    std::string epsilon;
+    if (bs.epsilon.size() == 0)
+      epsilon = "0";
+    else
+      epsilon = bs.epsilon;
+    std::cout << epsilon << "<- \n";
+    return akt::readReduceGraph(ifs, bs.edgesDirected, stod(epsilon));
+    //return akt::readReduceGraph(ifs, bs.edgesDirected);
 }
 
 BenchmarkResults readGraphRunBenchmarks(BenchmarkSettings& bs)
@@ -113,65 +111,34 @@ BenchmarkResults readGraphRunBenchmarks(BenchmarkSettings& bs)
 void outputBenchmarkResults(const BenchmarkSettings& bs, const BenchmarkResults& br)
 {
     std::clog << "Time for algorithms (in seconds):\n";
-    std::clog << "Non-strict, strict, prefix foremost, optimal general time\n";
-    std::clog << br.nonStrictTime << ", " << br.strictTime << ", " << br.prefixTime << br.optimalTime<< '\n';
-    std::cout << br.nonStrictTime << ", " << br.strictTime << ", " << br.prefixTime <<" " <<'\n';
-    std::clog << "Computed betweenness measures:\n";
-    std::clog << "Node, non-strict shortest, non-strict shortest foremost, strict shortest, strict shortest foremost, optimal general, prefix betweenness\n";
-    for (int i = 0; i < br.n; ++i) {
-        if (bs.originalNodeIds)
-            std::cout << br.inputIds[i];
-        else
-            std::cout << i;
-        std::cout << ", ";
-        if (bs.runNonStrict)
-            std::cout << br.shortest[i] << ", " << br.foremost[i] << ", ";
-        else
-            std::cout << "-1, -1, ";
-        if (bs.runStrict)
-            std::cout << br.strictShortest[i] << ", " << br.strictForemost[i] << ", ";
-        else
-            std::cout << "-1, -1, ";
-        if (bs.runGeneral)
-          std::cout << br.results_general[0][i] << ", ";
-        else
-          std::cout << "-1\n";
-        if (bs.runPrefix)
-            std::cout << br.prefix[i] << '\n';
-        else
-            std::cout << "-1\n";
-    }
+    for(auto &ot: br.optimalTime)
+      std::cout << ot.first << " " << ot.second;
 }
 
 int main (int argc, char** argv)
 {
-    BenchmarkSettings bs;
-    po::options_description desc("usage: btwBenchmark [options]\nRuns the different betweenness centrality algorithms on the graph input via stdin (or file if -f used). Available options");
-    desc.add_options()
+  BenchmarkSettings bs;
+  po::options_description desc("usage: btwBenchmark [options]\nRuns the different betweenness centrality algorithms on the graph input via stdin (or file if -f used). Available options");
+  desc.add_options()
 		("help,h", "write help message")
 		("filename,f", po::value<std::string>(&(bs.filename)), "instead of reading the graph from stdin, use the file given in the argument")
-      ("optimal,opt", po::value<std::string>(&(bs.optimal_cost)), "choose a cost function for the general model if not specified shortest paths are selected")
-        ("graph-directed,d", "interpret the edges in the graph as directed edges")
-		("no-strict,s", "don't run the strict shortest (foremost) betweenness algorithm")
-      ("no-general,gen", "don't run the general model")
-		("no-non-strict,n", "don't run the non-strict shortest (foremost) betweenness algorithm")
-		("no-prefix,p", "don't run the the strict prefix-foremost betweenness algorithm")
-		("original-node-ids,u", "in the output, use original node ids instead of the arbitrary integer ids assigned by the program");
-    po::variables_map vm;
+    ("epsilon,e", po::value<std::string>(&(bs.epsilon)), "value for event time difference")
+    ("optimal,opt", po::value<std::string>(&(bs.optimal_cost)), "choose a cost function for the general model if not specified shortest paths are selected")
+    ("graph-directed,d", "interpret the edges in the graph as directed edges")
+		("strict,s", "run the strict versions betweenness algorithm")
+		("no-non-strict,n", "don't run the non-strict versions betweenness algorithm");
+  po::variables_map vm;
 	po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
 	po::notify(vm);
-    if (vm.count("help")) {
-        std::cout << desc << '\n';
-        return 0;
-    }
-    bs.readFromFile = vm.count("filename") > 0;
-    bs.edgesDirected = vm.count("graph-directed") > 0;
-    bs.runStrict = vm.count("no-strict") <= 0;
-    bs.runNonStrict = vm.count("no-non-strict") <= 0;
-    bs.runPrefix = vm.count("no-prefix") <= 0;
-    bs.runGeneral = vm.count("no-general") <= 0;
-    bs.originalNodeIds = vm.count("originalNodeIds") > 0;
-    
+  if (vm.count("help")) {
+    std::cout << desc << '\n';
+    return 0;
+  }
+  bs.readFromFile = vm.count("filename") > 0;
+  bs.edgesDirected = vm.count("graph-directed") > 0;
+  bs.is_epsilon = vm.count("epsilon") > 0;
+  bs.runStrict = vm.count("strict") > 0;
+  bs.originalNodeIds = vm.count("originalNodeIds") > 0;
     try {
         auto br = readGraphRunBenchmarks(bs);
         outputBenchmarkResults(bs, br);

@@ -5,7 +5,7 @@
 #include <tuple>
 #include<iostream>
 // Removes timesteps (i.e. "compresses" the time) where there are no temporal edges
-void removeBoringTimesteps(akt::TemporalEdgeSet& edges)
+void removeBoringTimesteps(akt::TemporalEdgeSet& edges, std::map<int, int> &events_rev)
 {
     int timestepsRemoved = 0, lastTimestep = 0;
     // Handle first edge separately
@@ -16,13 +16,15 @@ void removeBoringTimesteps(akt::TemporalEdgeSet& edges)
     auto flat = std::vector<akt::TemporalEdge>(edges.cbegin(), edges.cend());
     
     for (auto& te : flat) {
-        te.when -= timestepsRemoved;
-        if ((te.when - lastTimestep) > 1) {
-            int newTime = lastTimestep + 1;
-            timestepsRemoved += te.when - newTime;
-            te.when = newTime;
-        }
-        lastTimestep = te.when;
+
+        // te.when -= timestepsRemoved;
+        // if ((te.when - lastTimestep) > 1) {
+        //     int newTime = lastTimestep + 1;
+        //     timestepsRemoved += te.when - newTime;
+        //     te.when = newTime;
+        // }
+        // lastTimestep = te.when;
+      te.when = events_rev[te.when];
     }
     
     // Re-blow into a tree
@@ -38,19 +40,24 @@ namespace akt {
         //    : (lhs.to < rhs.to));
     }
 
-  std::pair<Graph, std::vector<std::string>> readReduceGraph(std::istream& is, bool directed)
+  std::pair<Graph, std::vector<std::string>> readReduceGraph(std::istream& is, bool directed, double eps)
     {
-      std::set<int>* events = new std::set<int>;
+      std::set<int> events_set;
+      std::vector<int> events;
+      std::map<int, int> events_rev;
+
         TemporalEdgeSet edgesRead(&temporalEdgeLessTimewise);
         std::unordered_map<std::string, int> nodeIds;
         std::vector<std::string> reverseNodeIds;
         int noNodes = 0;
         for (std::string line; std::getline(is, line); ) {
             auto iss = std::istringstream{ line };
+            std::cout << "ligne "<< line;
             std::string from, to;
             int w;
             iss >> from >> to >> w;
-            events->insert(w);
+            std::cout << from << to << w;
+            events_set.insert(w);
             if ((from.empty()) || (to.empty()))
                 continue;
             if (nodeIds.count(from) < 1) {
@@ -69,11 +76,38 @@ namespace akt {
             edgesRead.insert(TemporalEdge{ f, t, w });
             if (!directed)
                 edgesRead.insert(TemporalEdge{ t, f, w });
+            
         }
-        removeBoringTimesteps(edgesRead);
-        for (auto &t : nodeIds)
-          std::cout << t.first << "," << t.second;
+        int min = *(events_set.begin());
+        int max = *(events_set.rbegin());
+        std::cout << "min " << min << " max " << max << " eps " << eps <<"\n";
+        if (eps > 0)
+          {
+            int j = min;
+            while(j < max)
+              {
+                events_set.insert(j);
+                j = j + eps;
+              } 
+          }
+        events.assign(events_set.begin(), events_set.end());
+        std::sort(events.begin(), events.end());
 
-        return { Graph(noNodes, edgesRead.crbegin()->when, edgesRead, events), reverseNodeIds };
+        for (int i = 0; i < events.size(); i++)
+          events_rev[events[i]] = i;
+        printf("events now \n");
+        for (auto &it : events_rev)
+          {
+            std::cout << "event " << it.first << " " << it.second << "\n";
+          }
+
+        removeBoringTimesteps(edgesRead, events_rev);
+
+        for (auto &la : nodeIds)
+          std::cout << "node : " << la.first << " "<< la.second << "\n";
+        for (auto &la : edgesRead)
+          std::cout << "lala " << la.from << " "<< la.to << " "<< la.when ;
+
+        return { Graph(noNodes, edgesRead.crbegin()->when, edgesRead, events, events_rev), reverseNodeIds };
     }
 }
