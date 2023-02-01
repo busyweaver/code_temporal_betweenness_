@@ -5,12 +5,15 @@
 #include <utility>
 #include <tuple>
 #include <iostream>
+//#include <filesystem>
 
 #include <vector>
 #include <string>
 
 #include <boost/program_options.hpp>
 #include "algorithms.h"
+#include <sys/stat.h>
+
 
 namespace po = boost::program_options;
 
@@ -35,12 +38,36 @@ struct BenchmarkSettings
   std::string optimal_cost;
 };
 
+void writeToFile(const akt::Graph& g, BenchmarkSettings& bs, std::string s, std::pair<std::vector<std::vector<double>>,std::vector<std::vector<double>>> p)
+{
+  std::string path = bs.filename+"_exp";
+  const char* str = path.c_str();
+
+  mkdir(str,0777);
+
+  std::ofstream file_bet;
+  std::ofstream file_bet_exact;
+  file_bet.open (path+"/bet_"+s+".txt");
+  file_bet_exact.open (path+"/bet_exact_"+s+".txt");
+  for(int i = 0; i < g.N(); i++)
+    {
+      for(int j = 0; j < g.T(); j ++)
+        {
+          file_bet << p.first[i][j] << "\n";
+          file_bet_exact << p.second[i][j] << "\n";
+        }
+    }
+  file_bet.close();
+  file_bet_exact.close();
+
+}
+
 BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
 {
     BenchmarkResults res;
 
     std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
-    // std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}};
+    //std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}};
     for (auto &st: cost_type)
       {
             std::vector<std::string> strict;
@@ -56,7 +83,8 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
                 if(stri == "false")
                   {
                     std::cout << "non-strict_"+st.first+"_"+st.second;
-                    res.results_general["non-strict_"+st.first+"_"+st.second] = optimalBetweenness(g, false, st.first, "le", st.second);
+                    //                   res.results_general["non-strict_"+st.first+"_"+st.second] = optimalBetweenness(g, false, st.first, "le", st.second);
+                    writeToFile(g, bs, "non-strict_"+st.first+"_"+st.second, optimalBetweenness(g, false, st.first, "le", st.second));
                     auto end = std::chrono::high_resolution_clock::now();
                     std::chrono::duration<double> time = end - start;
                     res.optimalTime["non-strict_"+st.first+"_"+st.second] = time.count();
@@ -65,7 +93,8 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
                 else
                   {
                     std::cout << "strict_"+st.first+"_"+st.second;
-                    res.results_general["strict_"+st.first+"_"+st.second] = optimalBetweenness(g, true, st.first, "le", st.second);
+                    //res.results_general["strict_"+st.first+"_"+st.second] = optimalBetweenness(g, true, st.first, "le", st.second);
+                    writeToFile(g, bs, "non-strict_"+st.first+"_"+st.second, optimalBetweenness(g, true, st.first, "le", st.second));
                     auto end = std::chrono::high_resolution_clock::now();
                     std::chrono::duration<double> time = end - start;
                     res.optimalTime["strict_"+st.first+"_"+st.second] = time.count();
@@ -74,6 +103,7 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
 
               }
       }
+
     return res;
 }
 

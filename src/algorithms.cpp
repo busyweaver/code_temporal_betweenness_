@@ -272,9 +272,22 @@ for (int i = 0; i < sbd.cur_best.size(); i++)
    {
      std::cout<<" " <<sbd.totalSigma[i];
    }
- printf("\n");
+
+
+ printf("betweenness_exact_sum\n");
+ for (int i = 0; i < sbd.betweenness_exact.size(); i++)
+   {
+     double s = 0;
+     for (int j = 0; j < sbd.betweenness_exact[i].size(); j++)
+       {
+         s = s + sbd.betweenness_exact[i].at(j);
+       }
+     std::cout<< s <<" " << "\n";
+   }
+ printf("end display \n");
 
 }
+
 
 
 void optimal_initialization(const akt::Graph& g, int s, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), MinHeap &q)
