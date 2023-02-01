@@ -95,9 +95,9 @@ struct PrefixBetweennessData
 void reinitializeHelperStructOptimal(const akt::Graph& g, int s, OptimalBetweennessData& sbd)
 {
   // Reinitialize the appearance-based arrays (at the only relevant times)
-  printf("okok\n");
+  // printf("okok\n");
   int T = g.events.size();
-  std::cout <<" T ->" << T;
+  // std::cout <<" T ->" << T;
   for (int n = 0; n < g.N(); n++) {
     for (int t = 0; t<T ; t++) {
       sbd.deltasvvt[n][t] = 0.0;
@@ -302,13 +302,10 @@ void optimal_initialization(const akt::Graph& g, int s, OptimalBetweennessData& 
       sbd.pre[s][t].insert(VertexAppearance{ s, -1 });
     }
   for (int t = g.minimalTimestep(); (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[s][t].nextTimestep) {
-    // printf("time %d\n",g.events[t]);
-    //printf("lol");
-    // for (auto &w : g.adjacencyList()[s][t].neighbours)
-    //   printf("nodes %d\n",w);
+
     for (auto w : g.adjacencyList()[s][t].neighbours) 
       {
-      std:cout << "optimal initialize " << " w  " << w  << " t " << t << " \n" << std::flush;
+        //      std:cout << "optimal initialize " << " w  " << w  << " t " << t << " \n" << std::flush;
         Path* ppp = new Path(sbd.opt_walk[s][t], w, g.events[t]);
         sbd.opt_walk[w][t] = ppp;
         sbd.cur_best[w][t] = cost(sbd.opt_walk[w][t], g.events[t], g);
@@ -382,10 +379,10 @@ void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, MinHeap &q,
   // display(sbd.opt_walk[b][tp]);
   auto cnew = cost(mp, g.events[tp], g);
   auto cold = cost(sbd.opt_walk[b][tp], g.events[tp], g);
-  printf("a %d t %d events [t] %d, cnew %lg cold %lg cost opt at %lg b %d tp %d events[tp] %d\n", a,t,g.events[t], cnew,cold,cost(sbd.opt_walk[a][t],g.events[t],g), b,tp,g.events[tp]);
+  //  printf("a %d t %d events [t] %d, cnew %lg cold %lg cost opt at %lg b %d tp %d events[tp] %d\n", a,t,g.events[t], cnew,cold,cost(sbd.opt_walk[a][t],g.events[t],g), b,tp,g.events[tp]);
   if (cmp(cnew, cold))
           {
-            std::cout << "a " << a << " b " <<  b << " t " << t << "\n";
+            //        std::cout << "a " << a << " b " <<  b << " t " << t << "\n";
             sbd.pre[b][tp].clear();
             sbd.cur_best[b][tp] = cnew;
             sbd.opt_walk[b][tp] = mp;
@@ -434,31 +431,17 @@ void optimalComputeDistancesSigmas(const akt::Graph& g, bool stri, int s, Optima
   //printf("normalement boucle après init %d,\n",q.heap_size);
   int j = 0;
   while (q.heap_size > 0 ) {
-    //printf("hello\n");
-    //q.display();
-    // for(auto &it : q.index_elem)
-    //   {
-    //     std::cout  <<it.first << "->" << it.second;
-    //     if (!(equal_pair(q.harr[it.second] , it.first)))
-    //       {
-    //         std::cout << "probleme indice" <<it.first << "->" << it.second << q.harr[it.second];
-    //         exit(-1);
-    //       }
 
-    //   }
-
-    //auto min_tmp = q.getMinimum();
     auto min_elem = q.extractMin();
 
 
 
     VertexAppearance cur = pair_to_vertexappearance(min_elem);
-    printf("vertex %d time %d\n",cur.v,cur.time);
-    printf("*************************************value %lg\n", min_elem.first);
+    //    printf("vertex %d time %d\n",cur.v,cur.time);
+    //printf("*************************************value %lg\n", min_elem.first);
     // Go over all neighbours of the current vertex appearance
     for (int t = cur.time + strict; (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[cur.v][t].nextTimestep_inv) {
       for (auto w : g.adjacencyList()[cur.v][t].neighbours_inv) {
-        //printf("boucleeeeeeeeeeeeee\n");
         if (walk_type == "active")
           relax_resting(cur.v,cur.time,t, sbd, q, cmp, cost, g);
     }
@@ -468,28 +451,12 @@ void optimalComputeDistancesSigmas(const akt::Graph& g, bool stri, int s, Optima
       for (auto w : g.adjacencyList()[cur.v][t].neighbours) {
         if (walk_type == "active")
           relax_resting(cur.v, cur.time, t, sbd, q, cmp, cost, g);
-        printf("neigh v = %d, t = %d,  w = %d tp = %d\n", cur.v ,cur.time, w, t);
+        //        printf("neigh v = %d, t = %d,  w = %d tp = %d\n", cur.v ,cur.time, w, t);
         relax(cur.v,w,cur.time,t,sbd,q,cmp,cost,g,counted);
         }
       }
-    //printf("normalement boucle après %d,\n",q.heap_size);
-    //std::cout << cur.v << "------------------------------------------------------------------------>" << cur.time << " " << sbd.cur_best[cur.v][cur.time] << "\n";
     }
-  // for (auto &it : counted)
-  //   {
-  //     if(std::get<0>(it.second) > 1)
-  //       {
-  //         std::cout << "////////////////////////////////////////////////////////////////"<< it.first.v <<" " << it.first.time << " index "<<  (it.first.time) << " number of times "<< std::get<0>(it.second) << " \n";
-  //         auto [nb,co,cn] = it.second;
-  //         for (auto &it : co)
-  //           std::cout << it << " ";
-  //         std::cout << "\n";
-  //         for (auto &it : cn)
-  //           std::cout << it << " ";
-  //         std::cout << "\n";
-  //       }
 
-  //   }
 }
 
 // Empties the stack in sbd while updating the betweenness values of the nodes of the graph
@@ -593,12 +560,12 @@ void print_pred_neighbour(Predecessor &G, const akt::Graph& g)
 void optimalUpdateBetweenness(int s, const akt::Graph& g, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), bool (*cmp)(double, double), std::string walk_type)
 {
   //std::vector<std::vector<double>> betweenness;
-  printf("alo3\n");
+  //printf("alo3\n");
   Predecessor G = Predecessor(g, sbd.pre, s);
   std::pair<std::unordered_set<int>, std::unordered_set<int>> p;
-  printf("alo2 avant %ld\n",G.g.numberOfNodes());
+  //  printf("alo2 avant %ld\n",G.g.numberOfNodes());
   p = RemoveInfiniteFromPredecessor(s, G, sbd, cost, cmp, walk_type, g);
-  printf("alo2 apres %ld\n",G.g.numberOfNodes());
+  // printf("alo2 apres %ld\n",G.g.numberOfNodes());
   int T = g.events.size();
   p.first.insert(p.second.begin(), p.second.end());
   for(auto &elem : p.first)
@@ -611,30 +578,19 @@ void optimalUpdateBetweenness(int s, const akt::Graph& g, OptimalBetweennessData
     copy_sigmadot_in_sigma(sbd);
   ComputeDeltaSvvt(G, s, sbd, g);
 
-  // NetworKit::StronglyConnectedComponents scc(G.g);
-  // scc.run();
-  // const auto sizes = scc.getPartition().subsetSizes();
-  // for(auto &elem : sizes)
-  //   {
-  //     if(elem>1)
-  //       printf("NONNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN\n");
-  //     char tmp2;
-  //     scanf("%c",tmp2);
-  //   }
-  //  display_tot(sbd);
   CompleteDelta(G, sbd, g);
   //display_tot(sbd);
   PredecessorGraphToOrdered(G, g.events.size());
-  print_pred_neighbour(G, g);
+  //print_pred_neighbour(G, g);
   std::map<int,int> preced = BeforeNodes(G, g);
   //  auto T = g.events.size();
-  for(auto &it : preced)
-    std::cout << "before " << it.first/T<< " " << it.first%T <<", " << it.second/T<< " " << it.second%T << "\n";
+  // for(auto &it : preced)
+  //   std::cout << "before " << it.first/T<< " " << it.first%T <<", " << it.second/T<< " " << it.second%T << "\n";
   GeneralContribution(g, G, s, sbd, preced, walk_type);
   //display_tot(sbd);
   UpdateBetweenness(sbd, g.N(),  g.events.size());
   UpdateBetweenness_exact(sbd, g.N(),g.events.size(),s);
-  display_tot(sbd);
+  //display_tot(sbd);
 }
 
 void prefixDoForemostBasedSearch(const akt::Graph& g, int s, PrefixBetweennessData& pbd)
@@ -690,7 +646,7 @@ namespace akt {
   {
     double (*cost2)(Path*, int, const akt::Graph&);
     bool (*cmp2)(double, double);
-    printf("**********************************************************************\n");
+    // printf("**********************************************************************\n");
     if (cost == "shortestfastest")
         cost2 = &co_sfp;
     else if(cost == "shortest")
@@ -704,11 +660,11 @@ namespace akt {
       {
         cmp2 = &smaller;
       }
-    std::cout << "lol" << g.N()<< g.T();
+    // std::cout << "lol" << g.N()<< g.T();
     auto sbd = OptimalBetweennessData(g);
     // Stores the betweenness values; initialize to 1 because of the formula for betweenness having a constant +1
     for (int s = 0; s < g.N(); ++s) {
-      printf("*********************** new treatment %d *****************************\n",s);
+      printf("*********************** new treatment %d / %d *****************************\n",s,g.N()-1);
       reinitializeHelperStructOptimal(g, s, sbd);
       optimalComputeDistancesSigmas(g, strict, s, sbd, cost2, cmp2, walk_type);
       optimalUpdateBetweenness(s, g, sbd, cost2, cmp2, walk_type);

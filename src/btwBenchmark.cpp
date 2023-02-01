@@ -78,21 +78,21 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
 
             for (auto &stri: strict)
               {
-                std::clog << "Starting  " << st.first << " " << st.second << std::endl;
+                //std::clog << "Starting  " << st.first << " " << st.second << std::endl;
                 auto start = std::chrono::high_resolution_clock::now();
                 if(stri == "false")
                   {
-                    std::cout << "non-strict_"+st.first+"_"+st.second;
+                    std::cout << "non-strict_"+st.first+"_"+st.second << "\n";
                     //                   res.results_general["non-strict_"+st.first+"_"+st.second] = optimalBetweenness(g, false, st.first, "le", st.second);
                     writeToFile(g, bs, "non-strict_"+st.first+"_"+st.second, optimalBetweenness(g, false, st.first, "le", st.second));
                     auto end = std::chrono::high_resolution_clock::now();
                     std::chrono::duration<double> time = end - start;
                     res.optimalTime["non-strict_"+st.first+"_"+st.second] = time.count();
-                    std::cout << " "  << time.count() << "\n";
+                    std::cout << "time elapsed : "  << time.count() << "\n";
                   }
                 else
                   {
-                    std::cout << "strict_"+st.first+"_"+st.second;
+                    std::cout << "strict_"+st.first+"_"+st.second << "\n";
                     //res.results_general["strict_"+st.first+"_"+st.second] = optimalBetweenness(g, true, st.first, "le", st.second);
                     writeToFile(g, bs, "non-strict_"+st.first+"_"+st.second, optimalBetweenness(g, true, st.first, "le", st.second));
                     auto end = std::chrono::high_resolution_clock::now();

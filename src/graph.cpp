@@ -52,11 +52,11 @@ namespace akt {
         int noNodes = 0;
         for (std::string line; std::getline(is, line); ) {
             auto iss = std::istringstream{ line };
-            std::cout << "ligne "<< line;
+            //std::cout << "ligne "<< line;
             std::string from, to;
             int w;
             iss >> from >> to >> w;
-            std::cout << from << to << w;
+            //std::cout << from << to << w;
             events_set.insert(w);
             if ((from.empty()) || (to.empty()))
                 continue;
@@ -76,11 +76,9 @@ namespace akt {
             edgesRead.insert(TemporalEdge{ f, t, w });
             if (!directed)
                 edgesRead.insert(TemporalEdge{ t, f, w });
-            
         }
         int min = *(events_set.begin());
         int max = *(events_set.rbegin());
-        std::cout << "min " << min << " max " << max << " eps " << eps <<"\n";
         if (eps > 0)
           {
             int j = min;
@@ -95,18 +93,9 @@ namespace akt {
 
         for (int i = 0; i < events.size(); i++)
           events_rev[events[i]] = i;
-        printf("events now \n");
-        for (auto &it : events_rev)
-          {
-            std::cout << "event " << it.first << " " << it.second << "\n";
-          }
+        // printf("events now \n");
 
         removeBoringTimesteps(edgesRead, events_rev);
-
-        for (auto &la : nodeIds)
-          std::cout << "node : " << la.first << " "<< la.second << "\n";
-        for (auto &la : edgesRead)
-          std::cout << "lala " << la.from << " "<< la.to << " "<< la.when ;
 
         return { Graph(noNodes, edgesRead.crbegin()->when, edgesRead, events, events_rev), reverseNodeIds };
     }
