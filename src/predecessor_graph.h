@@ -1,6 +1,6 @@
 #pragma once
 
-#include<networkit/graph/Graph.hpp>
+#include <networkit/graph/Graph.hpp>
 #include "vertex_appearance.h"
 //#include "paths.h"
 //#include "graph.h"
