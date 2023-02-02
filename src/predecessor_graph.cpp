@@ -355,7 +355,7 @@ void ComputeDeltaSvvt(Predecessor& G, int s, OptimalBetweennessData &sbd, const 
 }
 
 
-void PredecessorGraphToOrdered(Predecessor& G, int  T)
+void PredecessorGraphToOrdered(Predecessor& G, int  T, int n)
 {
   //   std::map<int, std::map<int, std::vector<int> > > ordered_neighb;
   G.g.forEdges(
@@ -369,6 +369,15 @@ void PredecessorGraphToOrdered(Predecessor& G, int  T)
 
              });
 
+  for (auto &el : G.ordered_neighb)
+    {
+      auto v = el.first;
+      for (auto &tmp : G.ordered_neighb[v])
+        {
+          G.times_ord[v].push_back(tmp.first);
+        }
+      std::sort(G.times_ord[v].begin(), G.times_ord[v].end(), std::greater<int>()); 
+    }
 }
 
 
@@ -430,7 +439,7 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
 {
   // for(auto &elem : visited)
   //   printf("**************************************************************///////\n");
-  std::map<int, std::map<int, std::vector<int> > > l_nei = G.ordered_neighb;
+  std::map<int, std::map<int, std::vector<int> > >& l_nei = G.ordered_neighb;
   int T = g.events.size();
   // std::cout << "new"  << v/T << " " << v%T << "\n";
   if (visited.count(v) == 1)
@@ -441,19 +450,14 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
   //  std::map<int, double> partial_sum;
   std::map<int, double> contrib_local;
   auto s = 0.0;
-  std::vector<int> times_ord;
-  for (auto &tmp : l_nei[v])
-    {
-      times_ord.push_back(tmp.first);
-    }
-  std::sort(times_ord.begin(), times_ord.end(), std::greater<int>());
-  for(int j = 0;j<times_ord.size();j++)
+
+  for(int j = 0;j<G.times_ord[v].size();j++)
     //  for (auto &tp : times_ord)
     {
       int pred_time;
-      auto tp = times_ord[j];
-      if(j<times_ord.size()-1)
-        pred_time = times_ord[j+1]+1;
+      auto tp = G.times_ord[v][j];
+      if(j<G.times_ord[v].size()-1)
+        pred_time = G.times_ord[v][j+1]+1;
       else
         pred_time = v%T+1;
 

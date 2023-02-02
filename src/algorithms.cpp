@@ -561,7 +561,9 @@ void optimalUpdateBetweenness(int s, const akt::Graph& g, OptimalBetweennessData
 {
   //std::vector<std::vector<double>> betweenness;
   //printf("alo3\n");
+  printf("start pred \n");
   Predecessor G = Predecessor(g, sbd.pre, s);
+  printf("fin pred \n");
   std::pair<std::unordered_set<int>, std::unordered_set<int>> p;
   //  printf("alo2 avant %ld\n",G.g.numberOfNodes());
   p = RemoveInfiniteFromPredecessor(s, G, sbd, cost, cmp, walk_type, g);
@@ -570,23 +572,27 @@ void optimalUpdateBetweenness(int s, const akt::Graph& g, OptimalBetweennessData
   p.first.insert(p.second.begin(), p.second.end());
   for(auto &elem : p.first)
     sbd.sigmadot[elem/T][elem%T] = std::numeric_limits<double>::infinity();
+  printf("fin infinite paths \n");
   VolumePathAt(G, s, sbd, g);
 
   if(walk_type == "active")
     OptimalSigma(s, G, sbd, g, cost, p.first);
   else
     copy_sigmadot_in_sigma(sbd);
+  printf("fin sigma_(s(v,t)) \n");
   ComputeDeltaSvvt(G, s, sbd, g);
 
   CompleteDelta(G, sbd, g);
   //display_tot(sbd);
-  PredecessorGraphToOrdered(G, g.events.size());
+  PredecessorGraphToOrdered(G, g.events.size(), g.N());
+  printf("fin ordered\n");
   //print_pred_neighbour(G, g);
   std::map<int,int> preced = BeforeNodes(G, g);
   //  auto T = g.events.size();
   // for(auto &it : preced)
   //   std::cout << "before " << it.first/T<< " " << it.first%T <<", " << it.second/T<< " " << it.second%T << "\n";
   GeneralContribution(g, G, s, sbd, preced, walk_type);
+  printf("fin general contribution \n");
   //display_tot(sbd);
   UpdateBetweenness(sbd, g.N(),  g.events.size());
   UpdateBetweenness_exact(sbd, g.N(),g.events.size(),s);

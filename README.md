@@ -1,11 +1,18 @@
 # Temporal Betweenness Algorithms Implementation
+
+## Boost download
 Check that cmake version is >= 3.5
 replace in src/cmake/libs.cmake the link https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz link with https://boostorg.jfrog.io/artifactory/main/release/1.70.0/source/boost_1_70_0.tar.gz
-for networkit download the source code of ttmath and place it in /usr/include
-Add libnetworkit.so to the shared libraries in the variable LD_LIBRARY_PATH. Mine looks like this:
-/usr/local/lib/libnetworkit.so:/usr/local/libnetworkit.so:/lib:/usr/local/lib:/usr/local
-and then export the variable wit
-export LD_LIBRARY_PATH
+
+## Networkit
+### If installed globally
+Need to add the path to libnetworkit.so to LD_LIBRARY_PATH
+### If installed Locally
+Add networkit library to C_INCLUDE_PATH and CPLUS_INCLUDE_PATH I also had to compile ttmath and tlx manually (they are in networkit folder) and add their path C_INCLUDE_PATH and CPLUS_INCLUDE_PATH.
+Also need to add the path to libnetworkit.so to LD_LIBRARY_PATH
+Finally, in CMakeLists.txt comment the line of options and uncomment the previous one 
+
+
 ## How to build
 
 - `mkdir build.build`
