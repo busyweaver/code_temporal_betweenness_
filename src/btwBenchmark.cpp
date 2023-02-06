@@ -40,6 +40,7 @@ struct BenchmarkSettings
 
 void writeToFile(const akt::Graph& g, BenchmarkSettings& bs, std::string s, std::pair<std::vector<std::vector<double>>,std::vector<std::vector<double>>> p)
 {
+  std::cout << "write start "<< "\n" << std::flush;
   std::string path = bs.filename+"_exp";
   const char* str = path.c_str();
 
@@ -67,7 +68,7 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
     BenchmarkResults res;
 
     std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
-    //std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}};
+    //    std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}};
     for (auto &st: cost_type)
       {
             std::vector<std::string> strict;
@@ -79,13 +80,15 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
             for (auto &stri: strict)
               {
                 //std::clog << "Starting  " << st.first << " " << st.second << std::endl;
-                auto start = std::chrono::high_resolution_clock::now();
+
                 if(stri == "false")
                   {
                     std::cout << "non-strict_"+st.first+"_"+st.second << "\n";
-                    //                   res.results_general["non-strict_"+st.first+"_"+st.second] = optimalBetweenness(g, false, st.first, "le", st.second);
-                    writeToFile(g, bs, "non-strict_"+st.first+"_"+st.second, optimalBetweenness(g, false, st.first, "le", st.second));
+                    auto start = std::chrono::high_resolution_clock::now();
+                    auto x = optimalBetweenness(g, false, st.first, "le", st.second);
                     auto end = std::chrono::high_resolution_clock::now();
+                    writeToFile(g, bs, "non-strict_"+st.first+"_"+st.second, x);
+                    std::cout << "end calcul "<< "\n" << std::flush;
                     std::chrono::duration<double> time = end - start;
                     res.optimalTime["non-strict_"+st.first+"_"+st.second] = time.count();
                     std::cout << "time elapsed : "  << time.count() << "\n";
@@ -93,16 +96,28 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
                 else
                   {
                     std::cout << "strict_"+st.first+"_"+st.second << "\n";
-                    //res.results_general["strict_"+st.first+"_"+st.second] = optimalBetweenness(g, true, st.first, "le", st.second);
-                    writeToFile(g, bs, "non-strict_"+st.first+"_"+st.second, optimalBetweenness(g, true, st.first, "le", st.second));
+                    auto start = std::chrono::high_resolution_clock::now();
+                    auto x = optimalBetweenness(g, true, st.first, "le", st.second);
                     auto end = std::chrono::high_resolution_clock::now();
+                    writeToFile(g, bs, "strict_"+st.first+"_"+st.second, x);
                     std::chrono::duration<double> time = end - start;
                     res.optimalTime["strict_"+st.first+"_"+st.second] = time.count();
                     std::cout << " "  << time.count() << "\n";
                   }
 
               }
+
       }
+    std::cout << "verification with shortest passive and  shortest foremost passive"<< "\n" << std::flush;
+    auto start = std::chrono::high_resolution_clock::now();
+    auto p = shortestBetweenness(g, false);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> time = end - start;
+    std::cout << "shortest and shortest foremost both passive time  "  << time.count() << "\n";
+    for(auto &elem : p.first)
+      std::cout << "shortest "<< elem << " "<<"\n";
+    for(auto &elem : p.second)
+      std::cout << "foremost "<< elem << " "<<"\n";
 
     return res;
 }

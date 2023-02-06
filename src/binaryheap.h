@@ -60,6 +60,8 @@ public:
 	// Constructor
 	MinHeap(int capacity);
 
+  void deleteHeap();
+
 	// to heapify a subtree with the root at given index
 	void MinHeapify(int );
 
@@ -96,6 +98,10 @@ MinHeap::MinHeap(int cap)
 	capacity = cap;
 	harr = new std::pair<double,std::pair<int,int>>[cap];
 
+}
+void MinHeap::deleteHeap()
+{
+  delete harr;
 }
 
 // Inserts a new key 'k'
