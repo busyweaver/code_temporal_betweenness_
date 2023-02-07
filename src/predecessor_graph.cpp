@@ -36,35 +36,49 @@ std::pair<std::map<long int,long int >,std::map<long int,long int >> numberNodes
                 if (v == node)
                   {
                     // std::cout << node <<  gg.events[key] << "with "<< k <<  gg.events[key] << "\n";
+                    if (starting.count(k) == 1)
+                      {
+                        if(starting[k] > key)
+                          starting[k] = key;
+                      }
+                    else
+                      starting[k] = key;
+                    if (starting.count(node) == 1)
+                      {
+                        if(starting[node] > key)
+                          starting[node] = key;
+                      }
+                    else
+                      starting[node] = key;
                     if(!(ma.count(node*TT + key) == 1))
                       {
                         ma[node*TT + key] = actual;
                         actual ++;
+
                       }
                     if(!(ma.count(k*TT + key) == 1) )
                       {
                         ma[k*TT + key] = actual;
                         actual ++;
-                        if (starting.count(k) == 1)
-                          {
-                            if(starting[k] > key)
-                              starting[k] = key;
-                          }
                       }
 
                   }
                 else
                   {
+                    //                    std::cout << "number " << k << " "<< key << " "<<starting.count(k)<< "\n"; 
+                    if (starting.count(k) == 1)
+                      {
+                        if(starting[k] > key)
+                          starting[k] = key;
+                      }
+                    else
+                      starting[k] = key;
+                    //                    std::cout << "number res =>" << k << " "<< key << " "<<starting[k]<< "\n"; 
                     // std::cout << v << gg.events[t] << "with "<< k << gg.events[key] << "\n";
                     if(!(ma.count(k*TT + key) == 1))
                       {
                         ma[k*TT + key] = actual;
                         actual ++;
-                        if (starting.count(k) == 1)
-                          {
-                            if(starting[k] > key)
-                              starting[k] = key;
-                          }
                       }
                     if(!(ma.count(v*TT + t) == 1))
                       {
@@ -79,12 +93,11 @@ std::pair<std::map<long int,long int >,std::map<long int,long int >> numberNodes
 
                   }
               }
+
           }
         }
     }
   // printf("nb events %d\n", TT);
-  // for(auto &elem : ma)
-  //   std::cout << "ici "<< elem.first << " " << elem.second << "\n";
   return {ma, starting};
 }
 
@@ -96,6 +109,7 @@ Predecessor::Predecessor(const akt::Graph& gg, std::map<int, std::map<int,std::u
   auto p = numberNodes(gg,pre,node);
   ma = p.first;
   starting_time = p.second;
+
   for (auto &e : ma)
     ma_inv[e.second] = e.first;
 
@@ -576,7 +590,7 @@ void IntermediaryNodes(int vt, int vtp, std::map<int,int> before,OptimalBetweenn
   auto t = vt % T;
   // std::cout << "before val : " << "v "<< v << " tpp "<< tpp << " t " << t<< "pred_time " << pred_time << "before[v*T + tpp ]" << before[v*T + tpp ]/T << " "<<before[v*T + tpp ]%T <<"\n" << std::flush;
 
-  while (tpp >= pred_time && before[v*T + tpp ]%T == t)
+  while (tpp >= pred_time && before[v*T + tpp ]%T == t && visited.count(v*T + tpp) == 0)
     {
       // std::cout << "*********** change val inter val" << "v "<< v << " tpp "<< tpp << " t " << t<< "pred_time " << pred_time << "\n" << std::flush;
       sbd.deltadot[v][tpp] = s + sbd.deltasvvt[v][tpp];
@@ -586,18 +600,18 @@ void IntermediaryNodes(int vt, int vtp, std::map<int,int> before,OptimalBetweenn
     }
 }
 
-void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Graph& g, std::map<int, int> &preced , std::string walk_type, std::unordered_set<long int>& visited)
+void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Graph& g, std::map<int, int> &preced , std::string walk_type, std::unordered_set<long int>& visited, bool all)
 {
   // for(auto &elem : visited)
   //   printf("**************************************************************///////\n");
   std::map<long int, std::map<long int, std::vector<long int> > >& l_nei = G.ordered_neighb;
   int T = g.events.size();
-  //std::cout << "new"  << v/T << " " << v%T << "\n";
   if (visited.count(v) == 1)
     {
       // std::cout << "stop immediately" <<   "\n" << std::flush;;
       return;
     }
+  //  std::cout << "new"  << v/T << " " << v%T << "\n";
   //  std::map<int, double> partial_sum;
   std::map<int, double> contrib_local;
   auto s = 0.0;
@@ -619,7 +633,7 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
           // char tmp;
           // scanf("%c",&tmp);
 
-          DeltaSvt(w*T + tp,  G,  sbd, g, preced , walk_type, visited);
+          DeltaSvt(w*T + tp,  G,  sbd, g, preced , walk_type, visited, all);
           if(sbd.sigma[w][tp] == 0)
             {
               printf("gros probleme %d %d -> %ld %ld",v/T,v%T,w,tp);
@@ -628,14 +642,17 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
           s += (sbd.sigma[v/T][v%T]/sbd.sigma[w][tp])*sbd.deltadot[w][tp];
           //          partial_sum[tp] = s;
         }
-      if(walk_type == "active")
+      if(all == true)
         {
-          int ev = tp;
-          if(G.g.hasNode((v/T)*T + tp))
-            ev = tp -1;
-          // printf("ev : %d", ev);
-          if(ev >= 0)
-            IntermediaryNodes(v,(v/T)*T + ev,preced,sbd,g,s,pred_time, visited);
+          if(walk_type == "active")
+            {
+              int ev = tp;
+              if(G.g.hasNode((v/T)*T + tp))
+                ev = tp -1;
+              // printf("ev : %d", ev);
+              if(ev >= 0)
+                IntermediaryNodes(v,(v/T)*T + ev,preced,sbd,g,s,pred_time, visited);
+            } 
         }
     }
   sbd.deltadot[v/T][v%T] = s + sbd.deltasvvt[v/T][v%T];
@@ -644,14 +661,14 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
 }
 
 
-std::unordered_set<long int> GeneralContribution(const akt::Graph& g, Predecessor& G, int s, OptimalBetweennessData& sbd , std::map<int, int> &preced, std::string walk_type)
+std::unordered_set<long int> GeneralContribution(const akt::Graph& g, Predecessor& G, int s, OptimalBetweennessData& sbd , std::map<int, int> &preced, std::string walk_type, bool all)
 {
   int T = g.events.size();
   std::unordered_set<long int> visited;
   //check if need to order
   for(auto star : G.sources) {
     //    DeltaSvt(star, G.ordered_neighb, sbd, g, preced, walk_type, visited);
-    DeltaSvt(G.ma_inv[star], G, sbd, g, preced, walk_type, visited);
+    DeltaSvt(G.ma_inv[star], G, sbd, g, preced, walk_type, visited, all);
   }
 
   return visited;

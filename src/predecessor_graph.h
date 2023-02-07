@@ -35,7 +35,7 @@ void ComputeDeltaSvvt(Predecessor& G, int s, OptimalBetweennessData &sbd, const 
 void PredecessorGraphToOrdered(Predecessor& G, int  T, int n);
 
 
-std::unordered_set<long int> GeneralContribution(const akt::Graph& g, Predecessor& G, int s, OptimalBetweennessData& sbd , std::map<int, int> &preced, std::string walk_type);
+std::unordered_set<long int> GeneralContribution(const akt::Graph& g, Predecessor& G, int s, OptimalBetweennessData& sbd , std::map<int, int> &preced, std::string walk_type, bool all);
 
 void IntermediaryNodes(int vt, int vtp, std::map<int,int> before,OptimalBetweennessData& sbd, const akt::Graph& g, double s, int pred_time, std::unordered_set<long int>& visited);
 std::map<int,int> BeforeNodes(Predecessor& G, const akt::Graph& g);

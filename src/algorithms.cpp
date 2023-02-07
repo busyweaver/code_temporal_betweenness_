@@ -578,26 +578,28 @@ void print_pred_neighbour(Predecessor &G, const akt::Graph& g)
     }
 }
 
-std::unordered_set<long int> optimalUpdateBetweenness(int s, const akt::Graph& g, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), bool (*cmp)(double, double), std::string walk_type)
+std::unordered_set<long int> optimalUpdateBetweenness(int s, const akt::Graph& g, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), bool (*cmp)(double, double), std::string walk_type, bool all)
 {
 
   //std::vector<std::vector<double>> betweenness;
   //printf("alo3\n");
   //  printf("start pred \n");
   Predecessor G = Predecessor(g, sbd.pre, s);
-  //printf("fin pred \n");
+  //  printf("fin pred \n");
   //  printPred(G, g);
   //sourcesSinksRemoveISolated(G,g);
   std::pair<std::unordered_set<int>, std::unordered_set<int>> p;
   //  printf("alo2 avant %ld\n",G.g.numberOfNodes());
   p = RemoveInfiniteFromPredecessor(s, G, sbd, cost, cmp, walk_type, g);
-  // printf("alo2 apres %ld\n",G.g.numberOfNodes());
+  //  printf("alo2 apres %ld\n",G.g.numberOfNodes());
   int T = g.events.size();
   p.first.insert(p.second.begin(), p.second.end());
   for(auto &elem : p.first)
     sbd.sigmadot[elem/T][elem%T] = std::numeric_limits<double>::infinity();
-  //printf("fin infinite paths \n");
+  //  printf("fin infinite paths \n");
   auto vis_sig = VolumePathAt(G, s, sbd, g);
+  // for(auto &it : vis_sig)
+  //   std::cout << "vis sig 2 " << it/T<< " " << it%T  << "\n";
 
   if(walk_type == "active")
     vis_sig = OptimalSigma(s, G, sbd, g, cost, p.first);
@@ -606,21 +608,23 @@ std::unordered_set<long int> optimalUpdateBetweenness(int s, const akt::Graph& g
   CompleteDelta(G, sbd, g);
   //display_tot(sbd);
   PredecessorGraphToOrdered(G, g.events.size(), g.N());
-  //printf("fin ordered\n");
+  //  printf("fin ordered\n");
   //print_pred_neighbour(G, g);
   std::map<int,int> preced = BeforeNodes(G, g);
   //  display_tot(sbd);
-  //  auto T = g.events.size();
-  // for(auto &it : preced)
-  //   std::cout << "before " << it.first/T<< " " << it.first%T <<", " << it.second/T<< " " << it.second%T << "\n";
-  auto visited = GeneralContribution(g, G, s, sbd, preced, walk_type);
-  //printf("fin general contribution \n");
+
+ 
+  auto visited = GeneralContribution(g, G, s, sbd, preced, walk_type, all);
+  // printf("fin general contribution \n");
   //display_tot(sbd);
   
   UpdateBetweenness(sbd,  g.events.size(), visited);
   UpdateBetweenness_exact(sbd, g.events.size(),s, visited);
   //  display_tot(sbd);
-  //display_tot(sbd);
+  // for(auto &it : G.starting_time)
+  //   std::cout << "starting " << it.first<< " " << it.second << "\n";
+  // for(auto &it : vis_sig)
+  //   std::cout << "vis sig " << it/T<< " " << it%T  << "\n";
   return vis_sig;
 }
 
@@ -673,7 +677,7 @@ namespace akt {
   }
 
   // Computes the betweenness measures
-  std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>> > optimalBetweenness(const Graph& g, bool strict, std::string cost, std::string cmp, std::string walk_type)
+  std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>> > optimalBetweenness(const Graph& g, bool strict, std::string cost, std::string cmp, std::string walk_type, bool all)
   {
     double (*cost2)(Path*, int, const akt::Graph&);
     bool (*cmp2)(double, double);
@@ -696,12 +700,11 @@ namespace akt {
     std::unordered_set<long int> vis;
     // Stores the betweenness values; initialize to 1 because of the formula for betweenness having a constant +1
     for (int s = 0; s < g.N(); ++s) {
-      //          printf("*********************** new treatment %d / %d *****************************\n",s,g.N()-1);
-          //          display_tot(sbd);
+      //                printf("*********************** new treatment %d / %d *****************************\n",s,g.N()-1);
+                //display_tot(sbd);
           optimalComputeDistancesSigmas(g, strict, s, sbd, cost2, cmp2, walk_type);
-          vis = optimalUpdateBetweenness(s, g, sbd, cost2, cmp2, walk_type);
+          vis = optimalUpdateBetweenness(s, g, sbd, cost2, cmp2, walk_type, all);
           reinitializeHelperStructOptimal(g, s, sbd, vis);
-
       //      std::cout << "end parts "<< "\n" << std::flush;
     }
     totalBetweenness_compute(sbd, g.N(), g.events.size());

@@ -28,6 +28,8 @@ struct BenchmarkResults
 struct BenchmarkSettings
 {
   bool runStrict = false;
+  bool runAll = false;
+  bool runNonStrict = false;
   bool edgesDirected = false;
   bool originalNodeIds = false;
   bool readFromFile = false;
@@ -67,12 +69,13 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
 {
     BenchmarkResults res;
 
-    std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
-    //    std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}};
+    //std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
+    std::vector<std::pair<std::string,std::string>> cost_type{{"shortestfastest","active"}};
     for (auto &st: cost_type)
       {
             std::vector<std::string> strict;
-            strict.push_back("false");
+            if(bs.runNonStrict == true)
+              strict.push_back("false");
             if(bs.runStrict == true)
                 strict.push_back("true");
 
@@ -85,7 +88,7 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
                   {
                     std::cout << "non-strict_"+st.first+"_"+st.second << "\n";
                     auto start = std::chrono::high_resolution_clock::now();
-                    auto x = optimalBetweenness(g, false, st.first, "le", st.second);
+                    auto x = optimalBetweenness(g, false, st.first, "le", st.second,bs.runAll);
                     auto end = std::chrono::high_resolution_clock::now();
                     writeToFile(g, bs, "non-strict_"+st.first+"_"+st.second, x);
                     std::cout << "end calcul "<< "\n" << std::flush;
@@ -97,7 +100,7 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
                   {
                     std::cout << "strict_"+st.first+"_"+st.second << "\n";
                     auto start = std::chrono::high_resolution_clock::now();
-                    auto x = optimalBetweenness(g, true, st.first, "le", st.second);
+                    auto x = optimalBetweenness(g, true, st.first, "le", st.second, bs.runAll);
                     auto end = std::chrono::high_resolution_clock::now();
                     writeToFile(g, bs, "strict_"+st.first+"_"+st.second, x);
                     std::chrono::duration<double> time = end - start;
@@ -174,7 +177,8 @@ int main (int argc, char** argv)
     ("optimal,opt", po::value<std::string>(&(bs.optimal_cost)), "choose a cost function for the general model if not specified shortest paths are selected")
     ("graph-directed,d", "interpret the edges in the graph as directed edges")
 		("strict,s", "run the strict versions betweenness algorithm")
-		("no-non-strict,n", "don't run the non-strict versions betweenness algorithm");
+    ("all,a", "run the active version on all temporal nodes, if not set run it only on vertex appearances")
+		("non-strict,n", "run the non-strict versions betweenness algorithm");
   po::variables_map vm;
 	po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
 	po::notify(vm);
@@ -186,6 +190,8 @@ int main (int argc, char** argv)
   bs.edgesDirected = vm.count("graph-directed") > 0;
   bs.is_epsilon = vm.count("epsilon") > 0;
   bs.runStrict = vm.count("strict") > 0;
+  bs.runNonStrict = vm.count("non-strict") > 0;
+  bs.runAll = vm.count("all") > 0;
   bs.originalNodeIds = vm.count("originalNodeIds") > 0;
     try {
         auto br = readGraphRunBenchmarks(bs);
