@@ -700,7 +700,7 @@ namespace akt {
     std::unordered_set<long int> vis;
     // Stores the betweenness values; initialize to 1 because of the formula for betweenness having a constant +1
     for (int s = 0; s < g.N(); ++s) {
-      //                printf("*********************** new treatment %d / %d *****************************\n",s,g.N()-1);
+                      printf("*********************** new treatment %d / %d *****************************\n",s,g.N()-1);
                 //display_tot(sbd);
           optimalComputeDistancesSigmas(g, strict, s, sbd, cost2, cmp2, walk_type);
           vis = optimalUpdateBetweenness(s, g, sbd, cost2, cmp2, walk_type, all);
