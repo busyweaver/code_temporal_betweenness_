@@ -146,16 +146,25 @@ Predecessor::Predecessor(const akt::Graph& gg, std::map<int, std::map<int,std::u
 void printPred(Predecessor& G, const akt::Graph & g)
 {
   auto T = g.events.size();
-  for(int v = 0; v < G.g.numberOfNodes(); v++)
-    {
-      std::cout << G.ma_inv[v]/T << " " <<  G.ma_inv[v]%T << "\n" << std::flush;
-      G.g.forNeighborsOf(v,
-                         [&](NetworKit::node x_i, NetworKit::edgeweight w)
-                   {
-                     std::cout << " -> " << G.ma_inv[x_i]/T << " " << G.ma_inv[x_i]%T << "\n" << std::flush;
-                   });
+  G.g.forNodes(
+               [&](NetworKit::node x_i)
+               {
+                 auto x = G.ma_inv[x_i];
+                 auto v = x/T;
+                 auto t = x%T;
+                 std::cout << "node -> " << v << " " << t << "\n";
+               });
+  G.g.forNodes(
+               [&](NetworKit::node v)
+               {
+                 std::cout << G.ma_inv[v]/T << " " <<  G.ma_inv[v]%T << "\n" << std::flush;
+                 G.g.forNeighborsOf(v,
+                                    [&](NetworKit::node x_i, NetworKit::edgeweight w)
+                                    {
+                                      std::cout << " -> " << G.ma_inv[x_i]/T << " " << G.ma_inv[x_i]%T << "\n" << std::flush;
+                                    });
+               });
 
-                         }
 }
 
 NetworKit::Graph condensationGraph(Predecessor& G, NetworKit::StronglyConnectedComponents scc)
@@ -268,25 +277,25 @@ std::unordered_set<int> Infinite_closure(Predecessor& G, OptimalBetweennessData 
 
 void sourcesSinksRemoveISolated(Predecessor& G, const akt::Graph & g)
 {
-  for(int i = 0; i < G.g.numberOfNodes(); i++)
-    {
-
-          if (G.g.degreeOut(i) == 0)
-            {
-              if( G.g.degreeIn(i) == 0)
-                {
-                  //std::cout  <<   "removing \n" << std::flush;  
-                  G.g.removeNode(i);
-                }
-              else
-                G.sinks.insert(i);
-            }
-          else
-            {
-              if ( G.g.degreeIn(i) == 0)
-                G.sources.insert(i);
-            }
-    }
+  G.g.forNodes(
+               [&](NetworKit::node i)
+               {
+                 if (G.g.degreeOut(i) == 0)
+                   {
+                     if( G.g.degreeIn(i) == 0)
+                       {
+                         //std::cout  <<   "removing \n" << std::flush;  
+                         G.g.removeNode(i);
+                       }
+                     else
+                       G.sinks.insert(i);
+                   }
+                 else
+                   {
+                     if ( G.g.degreeIn(i) == 0)
+                       G.sources.insert(i);
+                   }
+               });
   //  std::cout  <<   "end sources and sinks \n" << std::flush;  
 }
 
@@ -314,7 +323,7 @@ std::pair<std::unordered_set<int>, std::unordered_set<int>> RemoveInfiniteFromPr
       if(it->second > 1)
         inf_scc.insert(it->first);
     }
-  // std::cout << "scc of size > 1 \n";
+  //  std::cout << "scc of size > 1   " << inf_scc.size() <<  "\n";
   std::unordered_set<int>::iterator itr;
   for (itr = inf_scc.begin(); itr != inf_scc.end(); itr++)
     {
@@ -331,9 +340,10 @@ std::pair<std::unordered_set<int>, std::unordered_set<int>> RemoveInfiniteFromPr
     {
       // std::cout << "comp scc /**/ \n"; 
       const auto elem = partition.getMembers(itr);
+      long int T = g.events.size();
       for (auto &itt : elem)
         {
-          // std::cout << "inf node"<<  itt << "\n"; 
+          //          std::cout << "inf node"<<  G.ma_inv[itt]/T << " " << G.ma_inv[itt]%T<< "\n"; 
           G.g.removeNode(itt);
           temp_inf.insert(G.ma_inv[itt]);
         }
@@ -341,13 +351,18 @@ std::pair<std::unordered_set<int>, std::unordered_set<int>> RemoveInfiniteFromPr
   //std::cout  <<   "end remove infinite without closure \n" << std::flush;
 
   // std::cout << "remove isolated?\n";
-  auto clos_inf = Infinite_closure(G, sbd, cost, cmp, temp_inf, g);
+  std::unordered_set<int> clos_inf;
+  if(walk_type == "active")
+    clos_inf = Infinite_closure(G, sbd, cost, cmp, temp_inf, g);
+
   //  for (auto &itt :temp_inf)
       // std::cout << "SHOULD inf node"<<  itt << "\n";
   //for (auto &itt :clos_inf)
     // std::cout << "SHOULD2 inf node"<<  itt << "\n";
 
   // std::cout << "left before close "<<  G.g.numberOfNodes() << "\n";
+  //  std::cout << "size close inf "<<  clos_inf.size() << "\n";
+  //  std::cout << "size temp inf "<<  temp_inf.size() << "\n";
   for (auto &itt :clos_inf)
     {
       if (G.g.hasNode(G.ma[itt]))
@@ -380,15 +395,16 @@ void volumePathAtRec(int s,int e,Predecessor& G,OptimalBetweennessData &sbd, con
   else
     {
       // std::cout << "from  "<< e/T << " "<<e%T << "\n";
-      unsigned long long res = 0;
+      double res = 0;
       G.g.forInEdgesOf(G.ma[e], [&](NetworKit::node u_i, NetworKit::edgeweight w)
       {
         auto u = G.ma_inv[u_i];
-        // std::cout << "to "<< u/T << " "<< u%T << "\n";
+
         volumePathAtRec(s,u,G,sbd,g, visited);
-        if(u/T == s)
-          res += 1;
-        else
+
+        // if(u/T == s)
+        //   res += 1;
+        // else
           res += sbd.sigmadot[u/T][u%T];
 
       });
@@ -420,6 +436,7 @@ std::unordered_set<long int> VolumePathAt(Predecessor& G, int s, OptimalBetweenn
 
 std::unordered_set<long int> OptimalSigma(int node, Predecessor &G, OptimalBetweennessData &sbd, const akt::Graph& g,  double (*cost)(Path*, int, const akt::Graph& g), std::unordered_set<int> node_inf)
 { //start function
+  //  printf("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn");
   std::unordered_set<long int> visited;
   int T = g.events.size();
   for(int k = 0; k < g.N(); k++)
@@ -636,7 +653,7 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
           DeltaSvt(w*T + tp,  G,  sbd, g, preced , walk_type, visited, all);
           if(sbd.sigma[w][tp] == 0)
             {
-              printf("gros probleme %d %d -> %ld %ld",v/T,v%T,w,tp);
+              printf("gros probleme %d %d -> %ld %ld dot %lg sig %lg",v/T,v%T,w,tp,sbd.sigmadot[w][tp], sbd.sigma[w][tp]);
               exit(-1);
             }
           s += (sbd.sigma[v/T][v%T]/sbd.sigma[w][tp])*sbd.deltadot[w][tp];

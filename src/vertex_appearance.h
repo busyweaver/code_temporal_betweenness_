@@ -43,7 +43,7 @@ namespace std
       betweenness_exact{ std::vector<std::vector<double>>(n, std::vector<double>(T, 0.0)) },
       sigma{ std::vector<std::vector<double>>(n, std::vector<double>(T, 0)) },
       sigmadot{ std::vector<std::vector<double>>(n, std::vector<double>(T, 0)) },
-      totalSigmaT{ std::vector<std::vector<int>>(n, std::vector<int>(T, 0)) },
+      totalSigmaT{ std::vector<std::vector<double>>(n, std::vector<double>(T, 0)) },
       // pre{ std::map<std::map<std::unordered_set<VertexAppearance>>>(n, std::vector<std::unordered_set<VertexAppearance>>(T)) },
        cur_best{ std::vector<std::vector<double>>(n, std::vector<double>(T, std::numeric_limits<double>::infinity())) },
       opt_walk{ std::vector<std::vector<Path*>>(n, std::vector<Path*>(T, (Path*) nullptr) ) },
@@ -63,7 +63,7 @@ namespace std
   // Numbers of shortest paths from a source to each vertex appearance
   std::vector<std::vector<double>> sigma;
   std::vector<std::vector<double>> sigmadot;
-  std::vector<std::vector<int>> totalSigmaT;
+  std::vector<std::vector<double>> totalSigmaT;
   // Sets of predecessors for each vertex appearance
     std::map<int, std::map<int, std::unordered_set<VertexAppearance>>> pre;
   // Distances to each vertex appearance
