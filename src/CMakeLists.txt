@@ -20,5 +20,5 @@ add_executable(btwBenchmark
   vertex_appearance.cpp
 )
 # if networkit is installed on globaly put this
-target_link_libraries(btwBenchmark boost_program_options -lnetworkit -g)
-#target_link_libraries(btwBenchmark boost_program_options -L/home/naima/include -lnetworkit -g)
+#target_link_libraries(btwBenchmark boost_program_options -lnetworkit -g)
+target_link_libraries(btwBenchmark boost_program_options -L/home/naima/include -lnetworkit -g)
