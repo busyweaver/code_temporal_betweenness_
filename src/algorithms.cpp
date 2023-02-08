@@ -585,7 +585,7 @@ void print_pred_neighbour(Predecessor &G, const akt::Graph& g)
     }
 }
 
-std::unordered_set<long int> optimalUpdateBetweenness(int s, const akt::Graph& g, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), bool (*cmp)(double, double), std::string walk_type, bool all)
+std::unordered_set<long int> optimalUpdateBetweenness(int s, const akt::Graph& g, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), bool (*cmp)(double, double), std::string walk_type)
 {
 
   //std::vector<std::vector<double>> betweenness;
@@ -640,7 +640,7 @@ std::unordered_set<long int> optimalUpdateBetweenness(int s, const akt::Graph& g
   //  display_tot(sbd);
 
  
-  auto visited = GeneralContribution(g, G, s, sbd, preced, walk_type, all);
+  auto visited = GeneralContribution(g, G, s, sbd, preced, walk_type);
   // printf("fin general contribution \n");
   //display_tot(sbd);
   
@@ -703,7 +703,7 @@ namespace akt {
   }
 
   // Computes the betweenness measures
-  std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>> > optimalBetweenness(const Graph& g, bool strict, std::string cost, std::string cmp, std::string walk_type, bool all)
+  std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>> > optimalBetweenness(const Graph& g, bool strict, std::string cost, std::string cmp, std::string walk_type)
   {
     double (*cost2)(Path*, int, const akt::Graph&);
     bool (*cmp2)(double, double);
@@ -729,7 +729,7 @@ namespace akt {
                       printf("*********************** new treatment %d / %d *****************************\n",s,g.N()-1);
                       //          display_tot(sbd);
           auto visited = optimalComputeDistancesSigmas(g, strict, s, sbd, cost2, cmp2, walk_type);
-          vis = optimalUpdateBetweenness(s, g, sbd, cost2, cmp2, walk_type, all);
+          vis = optimalUpdateBetweenness(s, g, sbd, cost2, cmp2, walk_type);
           //          display_tot(sbd);
           reinitializeHelperStructOptimal(g, s, sbd, visited);
       //      std::cout << "end parts "<< "\n" << std::flush;

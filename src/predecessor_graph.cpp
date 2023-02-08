@@ -617,7 +617,7 @@ void IntermediaryNodes(int vt, int vtp, std::map<int,int>& before,OptimalBetween
     }
 }
 
-void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Graph& g, std::map<int, int> &preced , std::string walk_type, std::unordered_set<long int>& visited, bool all)
+void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Graph& g, std::map<int, int> &preced , std::string walk_type, std::unordered_set<long int>& visited)
 {
   // for(auto &elem : visited)
   //   printf("**************************************************************///////\n");
@@ -650,7 +650,7 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
           // char tmp;
           // scanf("%c",&tmp);
 
-          DeltaSvt(w*T + tp,  G,  sbd, g, preced , walk_type, visited, all);
+          DeltaSvt(w*T + tp,  G,  sbd, g, preced , walk_type, visited);
           if(sbd.sigma[w][tp] == 0)
             {
               printf("gros probleme %d %d -> %ld %ld dot %lg sig %lg",v/T,v%T,w,tp,sbd.sigmadot[w][tp], sbd.sigma[w][tp]);
@@ -659,8 +659,8 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
           s += (sbd.sigma[v/T][v%T]/sbd.sigma[w][tp])*sbd.deltadot[w][tp];
           //          partial_sum[tp] = s;
         }
-      if(all == true)
-        {
+
+
           if(walk_type == "active")
             {
               int ev = tp;
@@ -669,8 +669,7 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
               // printf("ev : %d", ev);
               if(ev >= 0)
                 IntermediaryNodes(v,(v/T)*T + ev,preced,sbd,g,s,pred_time, visited);
-            } 
-        }
+            }
     }
   sbd.deltadot[v/T][v%T] = s + sbd.deltasvvt[v/T][v%T];
   visited.insert(v);
@@ -678,14 +677,14 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
 }
 
 
-std::unordered_set<long int> GeneralContribution(const akt::Graph& g, Predecessor& G, int s, OptimalBetweennessData& sbd , std::map<int, int> &preced, std::string walk_type, bool all)
+std::unordered_set<long int> GeneralContribution(const akt::Graph& g, Predecessor& G, int s, OptimalBetweennessData& sbd , std::map<int, int> &preced, std::string walk_type)
 {
   int T = g.events.size();
   std::unordered_set<long int> visited;
   //check if need to order
   for(auto star : G.sources) {
     //    DeltaSvt(star, G.ordered_neighb, sbd, g, preced, walk_type, visited);
-    DeltaSvt(G.ma_inv[star], G, sbd, g, preced, walk_type, visited, all);
+    DeltaSvt(G.ma_inv[star], G, sbd, g, preced, walk_type, visited);
   }
 
   return visited;

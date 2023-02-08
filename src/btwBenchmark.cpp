@@ -115,7 +115,7 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
                   {
                     std::cout << "non-strict_"+st.first+"_"+st.second << "\n";
                     auto start = std::chrono::high_resolution_clock::now();
-                    auto x = optimalBetweenness(g, false, st.first, "le", st.second,bs.runAll);
+                    auto x = optimalBetweenness(g, false, st.first, "le", st.second);
                     auto end = std::chrono::high_resolution_clock::now();
                     writeToFile(g, bs, "non-strict_"+st.first+"_"+st.second, x);
                     std::cout << "end calcul "<< "\n" << std::flush;
@@ -127,7 +127,7 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
                   {
                     std::cout << "strict_"+st.first+"_"+st.second << "\n";
                     auto start = std::chrono::high_resolution_clock::now();
-                    auto x = optimalBetweenness(g, true, st.first, "le", st.second, bs.runAll);
+                    auto x = optimalBetweenness(g, true, st.first, "le", st.second);
                     auto end = std::chrono::high_resolution_clock::now();
                     writeToFile(g, bs, "strict_"+st.first+"_"+st.second, x);
                     std::chrono::duration<double> time = end - start;
@@ -205,7 +205,7 @@ int main (int argc, char** argv)
     ("optimal,opt", po::value<std::string>(&(bs.optimal_cost)), "choose a cost function for the general model if not specified shortest paths are selected")
     ("graph-directed,d", "interpret the edges in the graph as directed edges")
 		("strict,s", "run the strict versions betweenness algorithm")
-    ("all,a", "run the active version on all temporal nodes, if not set run it only on vertex appearances")
+    //    ("all,a", "run the active version on all temporal nodes, if not set run it only on vertex appearances")
 		("non-strict,n", "run the non-strict versions betweenness algorithm");
   po::variables_map vm;
 	po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
