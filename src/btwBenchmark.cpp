@@ -40,10 +40,33 @@ struct BenchmarkSettings
   std::string optimal_cost;
 };
 
+void writeTime(const akt::Graph& g, BenchmarkSettings& bs, std::map<std::string,double> ti)
+{
+  std::cout << "write time start "<< "\n" << std::flush;
+  std::string path;
+  if(bs.edgesDirected == false)
+    path = bs.filename+"_undirected_exp";
+  else
+    path = bs.filename+"_directed_exp";
+  const char* str = path.c_str();
+  mkdir(str,0777);
+  std::ofstream file;
+  file.open (path+"/info.txt");
+  file <<  "number nodes " << g.N() << "\n";
+  file <<  "number events " << g.T() << "\n";
+  for(auto &e : ti)
+      file << e.first << " " << e.second << "\n";
+  file.close();
+}
+
 void writeToFile(const akt::Graph& g, BenchmarkSettings& bs, std::string s, std::pair<std::vector<std::vector<double>>,std::vector<std::vector<double>>> p)
 {
   std::cout << "write start "<< "\n" << std::flush;
-  std::string path = bs.filename+"_exp";
+  std::string path;
+  if(bs.edgesDirected == false)
+    path = bs.filename+"_undirected_exp";
+  else
+    path = bs.filename+"_directed_exp";
   const char* str = path.c_str();
 
   mkdir(str,0777);
@@ -67,10 +90,10 @@ void writeToFile(const akt::Graph& g, BenchmarkSettings& bs, std::string s, std:
 
 BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
 {
-    BenchmarkResults res;
-
-        std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
-    //    std::vector<std::pair<std::string,std::string>> cost_type{{"foremost","passive"}};
+  BenchmarkResults res;
+  std::map<std::string,double> ti;
+  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
+  //        std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}};
     for (auto &st: cost_type)
       {
             std::vector<std::string> strict;
@@ -111,6 +134,7 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
               }
 
       }
+    writeTime(g, bs, res.optimalTime);
     std::cout << "verification with shortest passive and  shortest foremost passive"<< "\n" << std::flush;
     auto start = std::chrono::high_resolution_clock::now();
     auto p = shortestBetweenness(g, false);
