@@ -55,9 +55,9 @@ void writeTime(const akt::Graph& g, BenchmarkSettings& bs, std::map<std::string,
   file <<  "number nodes " << g.N() << "\n";
   file <<  "number events " << g.T() << "\n";
   if (bs.edgesDirected)
-    file <<  "number events " << g.M() << "\n";
+    file <<  "number edges " << g.M() << "\n";
   else
-    file <<  "number events " << g.M()/2 << "\n";
+    file <<  "number edges " << g.M()/2 << "\n";
   for(auto &e : ti)
       file << e.first << " " << e.second << "\n";
   file.close();
