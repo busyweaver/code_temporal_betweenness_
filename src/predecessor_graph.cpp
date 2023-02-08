@@ -598,7 +598,7 @@ std::map<int,int> BeforeNodes(Predecessor& G, const akt::Graph& g)
   return res;
 }
 
-void IntermediaryNodes(int vt, int vtp, std::map<int,int> before,OptimalBetweennessData& sbd, const akt::Graph& g, double s, int pred_time, std::unordered_set<long int>& visited)
+void IntermediaryNodes(int vt, int vtp, std::map<int,int>& before,OptimalBetweennessData& sbd, const akt::Graph& g, double s, int pred_time, std::unordered_set<long int>& visited)
 {
   auto T = g.events.size();
   // std::cout  << "vt " << vt/T << " " << vt%T << "vtp " << vtp/T << " "<<vtp%T << "\n";
