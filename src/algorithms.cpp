@@ -723,15 +723,19 @@ namespace akt {
       }
     // std::cout << "lol" << g.N()<< g.T();
     auto sbd = OptimalBetweennessData(g);
-    std::unordered_set<long int> vis;
     // Stores the betweenness values; initialize to 1 because of the formula for betweenness having a constant +1
     for (int s = 0; s < g.N(); ++s) {
-                      printf("*********************** new treatment %d / %d *****************************\n",s,g.N()-1);
-                      //          display_tot(sbd);
-          auto visited = optimalComputeDistancesSigmas(g, strict, s, sbd, cost2, cmp2, walk_type);
-          vis = optimalUpdateBetweenness(s, g, sbd, cost2, cmp2, walk_type);
-          //          display_tot(sbd);
-          reinitializeHelperStructOptimal(g, s, sbd, visited);
+      printf("*********************** new treatment %d / %d *****************************\n",s,g.N()-1);
+      //display_tot(sbd);
+      auto vis = optimalComputeDistancesSigmas(g, strict, s, sbd, cost2, cmp2, walk_type);
+      auto vis2 = optimalUpdateBetweenness(s, g, sbd, cost2, cmp2, walk_type);
+      if (walk_type == "active")
+        reinitializeHelperStructOptimal(g, s, sbd, vis2);
+      else
+        reinitializeHelperStructOptimal(g, s, sbd, vis);
+
+      //          display_tot(sbd);
+
       //      std::cout << "end parts "<< "\n" << std::flush;
     }
     totalBetweenness_compute(sbd, g.N(), g.events.size());
