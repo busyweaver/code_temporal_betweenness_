@@ -703,7 +703,7 @@ namespace akt {
   }
 
   // Computes the betweenness measures
-  std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>> > optimalBetweenness(const Graph& g, bool strict, std::string cost, std::string cmp, std::string walk_type)
+  std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>> > optimalBetweenness(const Graph& g, bool strict, std::string cost, std::string cmp, std::string walk_type, int numberNodes)
   {
     double (*cost2)(Path*, int, const akt::Graph&);
     bool (*cmp2)(double, double);
@@ -724,7 +724,9 @@ namespace akt {
     // std::cout << "lol" << g.N()<< g.T();
     auto sbd = OptimalBetweennessData(g);
     // Stores the betweenness values; initialize to 1 because of the formula for betweenness having a constant +1
-    for (int s = 0; s < g.N(); ++s) {
+    int s = 0;
+    while(s < g.N() && s != numberNodes){
+      //    for (int s = 0; s < g.N(); ++s) {
       printf("*********************** new treatment %d / %d *****************************\n",s,g.N()-1);
       //display_tot(sbd);
       auto vis = optimalComputeDistancesSigmas(g, strict, s, sbd, cost2, cmp2, walk_type);
@@ -737,6 +739,7 @@ namespace akt {
       //          display_tot(sbd);
 
       //      std::cout << "end parts "<< "\n" << std::flush;
+      s++;
     }
     totalBetweenness_compute(sbd, g.N(), g.events.size());
     //    std::cout << "end total_bet_comp "<< "\n" << std::flush;
