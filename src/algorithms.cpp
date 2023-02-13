@@ -6,6 +6,7 @@
 #include <queue>
 //#include<networkit/graph/Graph.hpp>
 #include <networkit/components/StronglyConnectedComponents.hpp>
+#include<random>
 bool temporalEdgeGreaterTimewise(const akt::TemporalEdge& lhs, const akt::TemporalEdge& rhs)
 {
   return (lhs.when != rhs.when) ? (lhs.when > rhs.when)
@@ -628,10 +629,11 @@ std::unordered_set<long int> optimalUpdateBetweenness(int s, const akt::Graph& g
   //   std::cout << "vis sig 2 " << it/T<< " " << it%T  << "\n";
   //  display_tot(sbd);
   if(walk_type == "active")
-    vis_sig = OptimalSigma(s, G, sbd, g, cost, p.first);
-  ComputeDeltaSvvt(G, s, sbd, g);
+      vis_sig = OptimalSigma(s, G, sbd, g, cost, p.first);
 
-  CompleteDelta(G, sbd, g);
+  ComputeDeltaSvvt(G, s, sbd, g);
+  if(walk_type == "active")
+    CompleteDelta(G, sbd, g);
   //display_tot(sbd);
   PredecessorGraphToOrdered(G, g.events.size(), g.N());
   //  printf("fin ordered\n");
@@ -725,10 +727,21 @@ namespace akt {
     auto sbd = OptimalBetweennessData(g);
     // Stores the betweenness values; initialize to 1 because of the formula for betweenness having a constant +1
     int s = 0;
-    while(s < g.N() && s != numberNodes){
+    std::unordered_set<int> sampled;
+    std::random_device rd;  // Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> distrib(0, g.N());
+    int i = 0;
+    while(i < g.N() && i != numberNodes){
+      if(numberNodes != -1)
+        {
+          s = distrib(gen);
+          while(sampled.count(s) == 1)
+            s = distrib(gen);
+        }
       //    for (int s = 0; s < g.N(); ++s) {
       printf("*********************** new treatment %d / %d *****************************\n",s,g.N()-1);
-      //display_tot(sbd);
+      display_tot(sbd);
       auto vis = optimalComputeDistancesSigmas(g, strict, s, sbd, cost2, cmp2, walk_type);
       auto vis2 = optimalUpdateBetweenness(s, g, sbd, cost2, cmp2, walk_type);
       if (walk_type == "active")
@@ -740,10 +753,11 @@ namespace akt {
 
       //      std::cout << "end parts "<< "\n" << std::flush;
       s++;
+      i++;
     }
     totalBetweenness_compute(sbd, g.N(), g.events.size());
     //    std::cout << "end total_bet_comp "<< "\n" << std::flush;
-    //display_tot(sbd);
+    display_tot(sbd);
     return {sbd.betweenness , sbd.betweenness_exact};
   }
 

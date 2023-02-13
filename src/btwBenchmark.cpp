@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 
 
+
 namespace po = boost::program_options;
 
 struct BenchmarkResults 
@@ -50,7 +51,7 @@ void writeTime(const akt::Graph& g, BenchmarkSettings& bs, std::map<std::string,
   const char* str = path.c_str();
   mkdir(str,0777);
   std::ofstream file;
-  file.open (path+"/info.txt");
+  file.open (path+"/info"+"_"+bs.numberNodes+".txt");
   file <<  "number nodes " << g.N() << "\n";
   file <<  "number events " << g.T() << "\n";
   if (bs.edgesDirected)
@@ -93,12 +94,13 @@ void writeToFile(const akt::Graph& g, BenchmarkSettings& bs, std::string s, std:
 
 BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
 {
+
   BenchmarkResults res;
   std::map<std::string,double> ti;
-  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
+  //  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
   if (bs.numberNodes.size() == 0)
     bs.numberNodes = "-1";
-  //  std::vector<std::pair<std::string,std::string>> cost_type{{"shortestfastest","active"}};
+    std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}};
     for (auto &st: cost_type)
       {
             std::vector<std::string> strict;
@@ -141,16 +143,16 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
       }
     writeTime(g, bs, res.optimalTime);
     //if needed uncomment to check
-    // std::cout << "verification with shortest passive and  shortest foremost passive"<< "\n" << std::flush;
-    // auto start = std::chrono::high_resolution_clock::now();
-    // auto p = shortestBetweenness(g, false);
-    // auto end = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double> time = end - start;
-    // std::cout << "shortest and shortest foremost both passive time  "  << time.count() << "\n";
-    // for(auto &elem : p.first)
-    //   std::cout << "shortest "<< elem << " "<<"\n";
-    // for(auto &elem : p.second)
-    //   std::cout << "foremost "<< elem << " "<<"\n";
+    std::cout << "verification with shortest passive and  shortest foremost passive"<< "\n" << std::flush;
+    auto start = std::chrono::high_resolution_clock::now();
+    auto p = shortestBetweenness(g, false);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> time = end - start;
+    std::cout << "shortest and shortest foremost both passive time  "  << time.count() << "\n";
+    for(auto &elem : p.first)
+      std::cout << "shortest "<< elem << " "<<"\n";
+    for(auto &elem : p.second)
+      std::cout << "foremost "<< elem << " "<<"\n";
 
     return res;
 }
@@ -198,6 +200,8 @@ void outputBenchmarkResults(const BenchmarkSettings& bs, const BenchmarkResults&
 
 int main (int argc, char** argv)
 {
+
+
   BenchmarkSettings bs;
   po::options_description desc("usage: btwBenchmark [options]\nRuns the different betweenness centrality algorithms on the graph input via stdin (or file if -f used). Available options");
   desc.add_options()
