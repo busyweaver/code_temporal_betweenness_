@@ -730,7 +730,7 @@ namespace akt {
     std::unordered_set<int> sampled;
     std::random_device rd;  // Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
-    std::uniform_int_distribution<> distrib(0, g.N());
+    std::uniform_int_distribution<> distrib(0, g.N()-1);
     int i = 0;
     while(i < g.N() && i != numberNodes){
       if(numberNodes != -1)
