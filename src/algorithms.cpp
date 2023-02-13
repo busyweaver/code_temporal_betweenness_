@@ -741,7 +741,7 @@ namespace akt {
         }
       //    for (int s = 0; s < g.N(); ++s) {
       printf("*********************** new treatment %d / %d *****************************\n",s,g.N()-1);
-      display_tot(sbd);
+      //      display_tot(sbd);
       auto vis = optimalComputeDistancesSigmas(g, strict, s, sbd, cost2, cmp2, walk_type);
       auto vis2 = optimalUpdateBetweenness(s, g, sbd, cost2, cmp2, walk_type);
       if (walk_type == "active")
