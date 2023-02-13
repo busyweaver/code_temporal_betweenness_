@@ -738,6 +738,7 @@ namespace akt {
           s = distrib(gen);
           while(sampled.count(s) == 1)
             s = distrib(gen);
+          sampled.insert(s);
         }
       //    for (int s = 0; s < g.N(); ++s) {
       printf("*********************** new treatment %d / %d *****************************\n",s,g.N()-1);

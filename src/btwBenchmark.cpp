@@ -18,7 +18,7 @@
 
 namespace po = boost::program_options;
 
-struct BenchmarkResults 
+struct BenchmarkResults
 {
   int n;
   std::map<std::string, std::pair<std::vector<std::vector<double>>,std::vector<std::vector<double>>>> results_general;
