@@ -145,14 +145,14 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
       }
     writeTime(g, bs, res.optimalTime);
     //if needed uncomment to check
-    std::cout << "verification with shortest passive and  shortest passive"<< "\n" << std::flush;
-    auto start = std::chrono::high_resolution_clock::now();
-    auto p = shortestBetweenness(g, false);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> time = end - start;
-    std::cout << "shortest and shortest foremost both passive time  "  << time.count() << "\n";
-    for(auto &elem : p.first)
-      std::cout << "shortest "<< elem << " "<<"\n";
+    // std::cout << "verification with shortest passive and  shortest passive"<< "\n" << std::flush;
+    // auto start = std::chrono::high_resolution_clock::now();
+    // auto p = shortestBetweenness(g, false);
+    // auto end = std::chrono::high_resolution_clock::now();
+    // std::chrono::duration<double> time = end - start;
+    // std::cout << "shortest and shortest foremost both passive time  "  << time.count() << "\n";
+    // for(auto &elem : p.first)
+    //   std::cout << "shortest "<< elem << " "<<"\n";
 
     return res;
 }

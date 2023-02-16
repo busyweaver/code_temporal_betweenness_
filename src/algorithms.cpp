@@ -511,7 +511,7 @@ void relaxBoost(int a, int b, int t, int tp, OptimalBetweennessData& sbd, std::v
   //   return;
   //  std::cout << a << " " << t << " : " << b << " " << tp << "\n";
   int T = g.events.size();
-  if (sbd.cur_best[b][tp] == std::numeric_limits<double>::infinity() || (sbd.cur_best[b][tp] >= l+1 && sbd.pre[b][tp].size() == 0))
+  if (sbd.cur_best[b][tp] == std::numeric_limits<double>::infinity() || (sbd.cur_best[b][tp] >= l+1 && sbd.pre[b][tp].size() == 0) )
           {
             visited.insert(b*T + tp);
             sbd.cur_best[b][tp] = l+1;
@@ -776,6 +776,8 @@ std::unordered_set<long int> optimalUpdateBetweenness(int s, const akt::Graph& g
   //  display_tot(sbd);
   if(walk_type == "active")
       vis_sig = OptimalSigma(s, G, sbd, g, cost, p.first);
+  else
+    copySigmas(vis_sig,sbd,g);
 
   ComputeDeltaSvvt(G, s, sbd, g);
   if(walk_type == "active")
@@ -817,11 +819,15 @@ std::unordered_set<long int> optimalUpdateBetweennessBoost(int s, const akt::Gra
   auto vis_sig = VolumePathAt(G, s, sbd, g);
   if(walk_type == "active")
       vis_sig = OptimalSigma(s, G, sbd, g, cost, p.first);
+  else
+    copySigmas(vis_sig,sbd,g);
+
+  //  display_tot(sbd);
   ComputeDeltaSvvt(G, s, sbd, g);
 
   if(walk_type == "active")
     CompleteDelta(G, sbd, g);
-
+  
   PredecessorGraphToOrdered(G, g.events.size(), g.N(),walk_type);
   //  printf("fin ordered\n");
   //print_pred_neighbour(G, g);
@@ -948,7 +954,7 @@ namespace akt {
     }
     totalBetweenness_compute(sbd, g.N(), g.events.size());
     //    std::cout << "end total_bet_comp "<< "\n" << std::flush;
-    //        display_tot(sbd);
+    //    display_tot(sbd);
     return {sbd.betweenness , sbd.betweenness_exact};
   }
 
@@ -980,10 +986,10 @@ namespace akt {
       printf("*****-----*******------ new treatment %d / %d *****-----*******------\n",s,g.N()-1);
       //      display_tot(sbd);
       auto vis = optimalComputeDistancesSigmasBoost(g, strict, s, sbd, cost2, cmp2, walk_type);
-      display_tot(sbd);
       std::unordered_set<long int> vis2;
+      //      display_tot(sbd);
       vis2 = optimalUpdateBetweennessBoost(s, g, sbd, cost2, cmp2, walk_type);
-      display_tot(sbd);
+      //      display_tot(sbd);
       if (walk_type == "active")
         reinitializeHelperStructOptimal(g, s, sbd, vis2);
       else
@@ -997,7 +1003,7 @@ namespace akt {
     }
     totalBetweenness_compute(sbd, g.N(), g.events.size());
     //    std::cout << "end total_bet_comp "<< "\n" << std::flush;
-    //  display_tot(sbd);
+    //display_tot(sbd);
     return {sbd.betweenness , sbd.betweenness_exact};
   }
 

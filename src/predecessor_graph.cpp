@@ -375,6 +375,14 @@ std::pair<std::unordered_set<int>, std::unordered_set<int>> RemoveInfiniteFromPr
   return {temp_inf, clos_inf};
 }
 
+void copySigmas(std::unordered_set<long int> &visited,OptimalBetweennessData &sbd, const akt::Graph &g)
+{
+  int T = g.events.size();
+  for(auto &e : visited)
+    sbd.sigma[e/T][e%T] = sbd.sigmadot[e/T][e%T];
+
+}
+
 
 void volumePathAtRec(int s,int e,Predecessor& G,OptimalBetweennessData &sbd, const akt::Graph &g, std::unordered_set<long int> &visited)
 {

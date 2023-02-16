@@ -29,6 +29,7 @@ void sourcesSinksRemoveISolated(Predecessor& G, const akt::Graph & g);
 
 std::unordered_set<long int> VolumePathAt(Predecessor& G, int s, OptimalBetweennessData &sbd, const akt::Graph &g);
 
+void copySigmas(std::unordered_set<long int> &visited,OptimalBetweennessData &sbd, const akt::Graph &g);
 std::unordered_set<long int> OptimalSigma(int node, Predecessor &G, OptimalBetweennessData &sbd, const akt::Graph& g, double (*cost)(Path*, int, const akt::Graph&), std::unordered_set<int> node_inf);
 
 void ComputeDeltaSvvt(Predecessor& G, int s, OptimalBetweennessData &sbd, const akt::Graph&);
