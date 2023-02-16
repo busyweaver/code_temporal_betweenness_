@@ -32,7 +32,7 @@ std::unordered_set<long int> VolumePathAt(Predecessor& G, int s, OptimalBetweenn
 std::unordered_set<long int> OptimalSigma(int node, Predecessor &G, OptimalBetweennessData &sbd, const akt::Graph& g, double (*cost)(Path*, int, const akt::Graph&), std::unordered_set<int> node_inf);
 
 void ComputeDeltaSvvt(Predecessor& G, int s, OptimalBetweennessData &sbd, const akt::Graph&);
-void PredecessorGraphToOrdered(Predecessor& G, int  T, int n);
+void PredecessorGraphToOrdered(Predecessor& G, int  T, int n, std::string walk_type);
 
 
 std::unordered_set<long int> GeneralContribution(const akt::Graph& g, Predecessor& G, int s, OptimalBetweennessData& sbd , std::map<int, int> &preced, std::string walk_type);
