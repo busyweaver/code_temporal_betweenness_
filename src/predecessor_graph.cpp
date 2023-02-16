@@ -580,7 +580,6 @@ void PredecessorGraphToOrdered(Predecessor& G, int  T, int n, std::string walk_t
         {
           G.times_ord[v].push_back(tmp.first);
         }
-      if(walk_type == "active")
         std::sort(G.times_ord[v].begin(), G.times_ord[v].end(), std::greater<long int>()); 
     }
 }

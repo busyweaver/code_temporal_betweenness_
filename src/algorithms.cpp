@@ -954,7 +954,7 @@ namespace akt {
     }
     totalBetweenness_compute(sbd, g.N(), g.events.size());
     //    std::cout << "end total_bet_comp "<< "\n" << std::flush;
-    //    display_tot(sbd);
+    //        display_tot(sbd);
     return {sbd.betweenness , sbd.betweenness_exact};
   }
 
