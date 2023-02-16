@@ -980,9 +980,10 @@ namespace akt {
       printf("*****-----*******------ new treatment %d / %d *****-----*******------\n",s,g.N()-1);
       //      display_tot(sbd);
       auto vis = optimalComputeDistancesSigmasBoost(g, strict, s, sbd, cost2, cmp2, walk_type);
+      display_tot(sbd);
       std::unordered_set<long int> vis2;
       vis2 = optimalUpdateBetweennessBoost(s, g, sbd, cost2, cmp2, walk_type);
-      //display_tot(sbd);
+      display_tot(sbd);
       if (walk_type == "active")
         reinitializeHelperStructOptimal(g, s, sbd, vis2);
       else
