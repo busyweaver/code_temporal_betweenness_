@@ -74,6 +74,8 @@ void writeToFile(const akt::Graph& g, BenchmarkSettings& bs, std::string s, std:
     path = bs.filename+"_undirected_exp";
   else
     path = bs.filename+"_directed_exp";
+  if(bs.runBoost)
+    path = path+"_boost";
   const char* str = path.c_str();
 
   mkdir(str,0777);
