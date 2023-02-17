@@ -610,10 +610,14 @@ std::unordered_set<long int>  optimalComputeDistancesSigmasBoost(const akt::Grap
         //    printf("vertex %d time %d\n",cur.v,cur.time);
         //printf("*************************************value %lg\n", min_elem.first);
         // Go over all neighbours of the current vertex appearance
-        for (int t = curtime + strict; (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[curv][t].nextTimestep) {
+        for (int t = curtime; (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[curv][t].nextTimestep) {
           for (auto w : g.adjacencyList()[curv][t].neighbours) {
-            if(! (curv == s && t != curtime))
-            relaxBoost(curv,w,curtime,t,sbd,qp,g,visited,l,strict,walk_type);
+            if((! (curv == s && t != curtime)) )
+              {
+                if(curv == s || t >= (curtime+strict))
+                  relaxBoost(curv,w,curtime,t,sbd,qp,g,visited,l,strict,walk_type);
+              }
+
           }
         }
       }
@@ -1003,7 +1007,7 @@ namespace akt {
     }
     totalBetweenness_compute(sbd, g.N(), g.events.size());
     //    std::cout << "end total_bet_comp "<< "\n" << std::flush;
-    //    display_tot(sbd);
+    //      display_tot(sbd);
     return {sbd.betweenness , sbd.betweenness_exact};
   }
 
