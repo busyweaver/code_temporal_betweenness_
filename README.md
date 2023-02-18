@@ -55,3 +55,5 @@ Or:
     13 f5 2
     a f5 -1
     zfyk 34$ -0
+## Options
+If The boost flag -b 1 should be used only on shortest paths variants. 
