@@ -66,6 +66,30 @@ void writeTime(const akt::Graph& g, BenchmarkSettings& bs, std::map<std::string,
   file.close();
 }
 
+void writeNodeIds(std::vector<std::string> ids, BenchmarkSettings& bs)
+{
+  std::string s = "nodesIds";
+  std::cout << "write start "<< "\n" << std::flush;
+  std::string path;
+  if(bs.edgesDirected == false)
+    path = bs.filename+"_undirected_exp";
+  else
+    path = bs.filename+"_directed_exp";
+  if(bs.runBoost)
+    path = path+"_boost";
+  const char* str = path.c_str();
+
+  mkdir(str,0777);
+
+  std::ofstream nodeIds;
+  nodeIds.open (path+"/"+ s +".txt");
+  for(int i = 0;i< ids.size(); i++)
+    nodeIds << i << " "<< ids[i] << "\n";
+  nodeIds.close();
+
+}
+
+
 void writeToFile(const akt::Graph& g, BenchmarkSettings& bs, std::string s, std::pair<std::vector<std::vector<double>>,std::vector<std::vector<double>>> p)
 {
   std::cout << "write start "<< "\n" << std::flush;
@@ -245,6 +269,7 @@ BenchmarkResults readGraphRunBenchmarks(BenchmarkSettings& bs)
 {
     // Not the perfect solution from the perspective of error handling (opening the file and not checking for success), but simple to write cleanly)
     auto [g, ids] = bs.readFromFile ? readGraphFromFile(bs) : akt::readReduceGraph(std::cin, bs.edgesDirected);
+    
     std::clog << "Graph read: " << g.N() << " nodes, ";
     if (bs.edgesDirected)
         std::clog << g.M() << " (unique) directed edges, ";
@@ -252,6 +277,7 @@ BenchmarkResults readGraphRunBenchmarks(BenchmarkSettings& bs)
         std::clog << g.M() / 2 << " (unique) edges, ";
     std::clog << g.T() << " (non-empty) timesteps\n";
     BenchmarkResults br;
+    writeNodeIds(ids,bs);
     if(bs.runBoost)
       br = runBenchmarksShort(g, bs);
     else
