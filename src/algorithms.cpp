@@ -904,7 +904,7 @@ namespace akt {
   }
 
   // Computes the betweenness measures
-  std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>> > optimalBetweenness(const Graph& g, bool strict, std::string cost, std::string cmp, std::string walk_type, int numberNodes)
+  std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>>, std::vector<double> > optimalBetweenness(const Graph& g, bool strict, std::string cost, std::string cmp, std::string walk_type, int numberNodes)
   {
     double (*cost2)(Path*, int, const akt::Graph&);
     bool (*cmp2)(double, double);
@@ -944,13 +944,13 @@ namespace akt {
       //      display_tot(sbd);
       auto vis = optimalComputeDistancesSigmas(g, strict, s, sbd, cost2, cmp2, walk_type);
       auto vis2 = optimalUpdateBetweenness(s, g, sbd, cost2, cmp2, walk_type);
-      //      display_tot(sbd);
+      //display_tot(sbd);
       if (walk_type == "active")
         reinitializeHelperStructOptimal(g, s, sbd, vis2);
       else
         reinitializeHelperStructOptimal(g, s, sbd, vis);
 
-      //          display_tot(sbd);
+      //display_tot(sbd);
 
       //      std::cout << "end parts "<< "\n" << std::flush;
       s++;
@@ -959,10 +959,11 @@ namespace akt {
     totalBetweenness_compute(sbd, g.N(), g.events.size());
     //    std::cout << "end total_bet_comp "<< "\n" << std::flush;
     //        display_tot(sbd);
-    return {sbd.betweenness , sbd.betweenness_exact};
+    return {sbd.betweenness , sbd.betweenness_exact, sbd.totalBetweenness};
+
   }
 
-    std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>> > optimalBetweennessBoost(const Graph& g, bool strict, std::string cost, std::string walk_type, int numberNodes)
+  std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>> , std::vector<double> > optimalBetweennessBoost(const Graph& g, bool strict, std::string cost, std::string walk_type, int numberNodes)
   {
     double (*cost2)(Path*, int, const akt::Graph&);
     bool (*cmp2)(double, double);
@@ -1008,7 +1009,7 @@ namespace akt {
     totalBetweenness_compute(sbd, g.N(), g.events.size());
     //    std::cout << "end total_bet_comp "<< "\n" << std::flush;
     //      display_tot(sbd);
-    return {sbd.betweenness , sbd.betweenness_exact};
+    return {sbd.betweenness , sbd.betweenness_exact, sbd.totalBetweenness};
   }
 
   // Computes the betweenness measures
