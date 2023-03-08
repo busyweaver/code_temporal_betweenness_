@@ -108,6 +108,7 @@ void reinitializeHelperStructOptimal(const akt::Graph& g, int s, OptimalBetweenn
       sbd.deltasvvt[n][t] = 0.0;
       sbd.deltadot[n][t] = 0.0;
 
+      delete sbd.opt_walk[n][t];
       sbd.opt_walk[n][t]=nullptr;
       sbd.pre[n][t].clear();
       sbd.cur_best[n][t]=std::numeric_limits<double>::infinity();
@@ -190,19 +191,19 @@ void display_tot(OptimalBetweennessData& sbd)
 {
 
 
-  // printf("pre\n");
-  // for(auto &elem : sbd.pre)
-  //   {
-  //     for(auto &elem2 : elem.second)
-  //       {
-  //         std::cout<<"pre  " <<  elem.first << " " << elem2.first << "\n";
-  //         for(auto &elem3 : elem2.second)
-  //           {
-  //             std::cout<<"::    " <<  elem3.v << " " << elem3.time;
-  //           }
-  //         std::cout << "\n";
-  //       }
-  //   }
+  printf("pre\n");
+  for(auto &elem : sbd.pre)
+    {
+      for(auto &elem2 : elem.second)
+        {
+          std::cout<<"pre  " <<  elem.first << " " << elem2.first << "\n";
+          for(auto &elem3 : elem2.second)
+            {
+              std::cout<<"::    " <<  elem3.v << " " << elem3.time;
+            }
+          std::cout << "\n";
+        }
+    }
 
   printf("cur_best\n");
   for (int i = 0; i < sbd.cur_best.size(); i++)
@@ -428,7 +429,10 @@ void relax_resting(int b, int t, int tp, OptimalBetweennessData& sbd, MinHeap &q
             p2.first = cold;
             p2.second = p_tmp2;
             if (q.index_elem.count(p2) == 1 )
-              q.decreaseKey(q.index_elem[p2], p);
+              {
+                q.decreaseKey(q.index_elem[p2], p);
+                //                std::cout << "DECREASE.................. \n"; 
+              }
             else
               q.insertKey(p);
             if (cnew < sbd.optimalNode[b])
@@ -488,6 +492,7 @@ void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, MinHeap &q,
             if (q.index_elem.count(p2) == 1 )
               {
                 q.decreaseKey(q.index_elem[p2], p);
+                std::cout << "DECREASE.................. \n"; 
               }
 
             else
@@ -499,7 +504,7 @@ void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, MinHeap &q,
           }
   else
     delete mp;
-  if (cnew == sbd.cur_best[b][tp])
+  if (cnew == sbd.cur_best[b][tp] and cnew != std::numeric_limits<double>::infinity())
     sbd.pre[b][tp].insert(VertexAppearance{a,t});
   //printf("fin\n");
 
@@ -534,6 +539,7 @@ void relaxBoost(int a, int b, int t, int tp, OptimalBetweennessData& sbd, std::v
   if (sbd.cur_best[b][tp] == l+1)
     sbd.pre[b][tp].insert(VertexAppearance{a,t});
   //printf("fin\n");
+
 
 }
 
@@ -695,7 +701,7 @@ void totalBetweenness_compute(OptimalBetweennessData& sbd, int n, int T)
         s += sbd.betweenness_exact[i][t];
       sbd.totalBetweenness[i] = s;
     }
-  std::cout << "end total bet compute\n";
+  //  std::cout << "end total bet compute\n";
 }
 
 void UpdateBetweenness_exact(OptimalBetweennessData& sbd, int T, int s, std::unordered_set<long int>& visited)
@@ -744,12 +750,11 @@ std::unordered_set<long int> optimalUpdateBetweenness(int s, const akt::Graph& g
   //  printf("start pred \n");
   Predecessor G = Predecessor(g, sbd.pre, s);
   //  printf("fin pred \n");
-  //  printPred(G, g);
+  printPred(G, g);
   //sourcesSinksRemoveISolated(G,g);
   std::pair<std::unordered_set<int>, std::unordered_set<int>> p;
   //  printf("alo2 avant %ld\n",G.g.numberOfNodes());
   p = RemoveInfiniteFromPredecessor(s, G, sbd, cost, cmp, walk_type, g);
-  //  printf("alo2 apres %ld\n",G.g.numberOfNodes());
   //  printPred(G, g);
   //  printf("alo2 apres %ld\n",G.g.numberOfNodes());
   int T = g.events.size();
@@ -817,7 +822,7 @@ std::unordered_set<long int> optimalUpdateBetweennessBoost(int s, const akt::Gra
   //printf("alo3\n");
   //  printf("start pred \n");
   Predecessor G = Predecessor(g, sbd.pre, s);
-  //  printPred(G, g);
+  //printPred(G, g);
   std::pair<std::unordered_set<int>, std::unordered_set<int>> p;
   sourcesSinksRemoveISolated(G,g);
   auto vis_sig = VolumePathAt(G, s, sbd, g);
@@ -916,7 +921,9 @@ namespace akt {
     else if(cost == "foremost")
       cost2 = &co_first_arrival;
     else if(cost == "shortestforemost")
-      cost2 = co_shortest_foremost;
+      cost2 = &co_shortest_foremost;
+    else if(cost == "shortestrestless")
+      cost2 = &co_shortest_2restless;
 
     if (cmp == "le")
       {
@@ -943,8 +950,9 @@ namespace akt {
       printf("*********************** new treatment %d / %d *****************************\n",s,g.N()-1);
       //      display_tot(sbd);
       auto vis = optimalComputeDistancesSigmas(g, strict, s, sbd, cost2, cmp2, walk_type);
+      display_tot(sbd);
       auto vis2 = optimalUpdateBetweenness(s, g, sbd, cost2, cmp2, walk_type);
-      //display_tot(sbd);
+      display_tot(sbd);
       if (walk_type == "active")
         reinitializeHelperStructOptimal(g, s, sbd, vis2);
       else
@@ -958,7 +966,7 @@ namespace akt {
     }
     totalBetweenness_compute(sbd, g.N(), g.events.size());
     //    std::cout << "end total_bet_comp "<< "\n" << std::flush;
-    //        display_tot(sbd);
+    display_tot(sbd);
     return {sbd.betweenness , sbd.betweenness_exact, sbd.totalBetweenness};
 
   }
@@ -971,6 +979,8 @@ namespace akt {
     //it has to be shortest
     if(cost == "shortest")
       cost2 = &co_short;
+    else if(cost == "shortestrestless")
+      cost2 = &co_shortest_2restless;
     auto sbd = OptimalBetweennessData(g);
     // Stores the betweenness values; initialize to 1 because of the formula for betweenness having a constant +1
     int s = 0;
@@ -992,9 +1002,9 @@ namespace akt {
       //      display_tot(sbd);
       auto vis = optimalComputeDistancesSigmasBoost(g, strict, s, sbd, cost2, cmp2, walk_type);
       std::unordered_set<long int> vis2;
-      //      display_tot(sbd);
+      //display_tot(sbd);
       vis2 = optimalUpdateBetweennessBoost(s, g, sbd, cost2, cmp2, walk_type);
-      //      display_tot(sbd);
+      //display_tot(sbd);
       if (walk_type == "active")
         reinitializeHelperStructOptimal(g, s, sbd, vis2);
       else
@@ -1008,7 +1018,7 @@ namespace akt {
     }
     totalBetweenness_compute(sbd, g.N(), g.events.size());
     //    std::cout << "end total_bet_comp "<< "\n" << std::flush;
-    //      display_tot(sbd);
+    //display_tot(sbd);
     return {sbd.betweenness , sbd.betweenness_exact, sbd.totalBetweenness};
   }
 

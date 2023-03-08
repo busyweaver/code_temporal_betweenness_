@@ -11,15 +11,6 @@ Path::Path(Path* p, int nod, int tim, int dep, int len)
 
 Path::Path(Path* p,int b,int t)
 {
-  //printf("path %p b %d t %d\n",(void*)p,b,t);
-  //printf("debut\n");
-  //fflush(stdout);
-  // if (this->nodes == nullptr || this->times == nullptr)
-  //   {
-  //     printf("probleme\n");
-  //     fflush(stdout);
-  //     exit(-1);
-  //   }
 
   if (p == nullptr)
     {
@@ -30,7 +21,7 @@ Path::Path(Path* p,int b,int t)
       this->depar = t;
       this->length = 0;
       //printf("size %d \n", this->length);
-      fflush(stdout); 
+      //fflush(stdout);
     }
   else
     {
@@ -78,6 +69,11 @@ int Path::getLength()
 void display(Path*m)
 {
   Path* tmp = m;
+  if(tmp==nullptr)
+    {
+      std::cout << "nein empty \n";
+      return;
+    }
   int i =0;
   printf("\nPath\n");
   while(tmp->parent != nullptr && i<10)
@@ -129,4 +125,23 @@ double co_shortest_foremost(Path *m, int t,  const akt::Graph &g)
   if ((*m).is_empty())
     return 0.0;
   return g.N() * (*m).arrival() +   (*m).getLength();
+}
+
+double co_shortest_2restless(Path *m, int t,  const akt::Graph &g)
+{
+  double res;
+  display(m);
+  if (m == nullptr)
+    res = std::numeric_limits<double>::infinity();
+  else if ((*m).getLength() == 1 || (*m).getLength() == 0)
+    res = 1;
+  else
+    {
+      if(m->time - m->parent->time >2)
+        res = std::numeric_limits<double>::infinity();
+      else
+        res = (*m).getLength();
+    }
+  std::cout << res << " res \n";
+  return res;
 }

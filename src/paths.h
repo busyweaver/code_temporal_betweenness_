@@ -38,3 +38,5 @@ double co_short(Path *m, int t,  const akt::Graph &g);
 double co_first_arrival(Path *m, int t, const akt::Graph &g);
 
 double co_shortest_foremost(Path *m, int t,  const akt::Graph &g);
+
+double co_shortest_2restless(Path *m, int t,  const akt::Graph &g);

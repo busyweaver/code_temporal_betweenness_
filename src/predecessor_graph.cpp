@@ -112,7 +112,7 @@ Predecessor::Predecessor(const akt::Graph& gg, std::map<int, std::map<int,std::u
 
   for (auto &e : ma)
     ma_inv[e.second] = e.first;
-
+  //  std::cout << "predecessor effective size : " << ma.size() << "\n";
   g = NetworKit::Graph(ma.size(), false, true, false);
   for(auto &el : pre)
     {
@@ -129,11 +129,13 @@ Predecessor::Predecessor(const akt::Graph& gg, std::map<int, std::map<int,std::u
                   if (v == node)
                     {
                       // std::cout << node <<  gg.events[key] << "with "<< k <<  gg.events[key] << "\n";
+                      //                      std::cout << " from "<< ma[node*TT + key] << "to " << ma[k*TT + key] << "\n";
 
                       g.addEdge(ma[node*TT + key], ma[k*TT + key]);
                     }
                   else
                     {
+                      //                      std::cout << " from "<< ma[v*TT + t] << "to " << ma[k*TT + key] << "\n";
                       // std::cout << v << gg.events[t] << "with "<< k << gg.events[key] << "\n";
                       g.addEdge(ma[v*TT + t], ma[k*TT + key]);
                     }
@@ -191,7 +193,7 @@ NetworKit::Graph condensationGraph(Predecessor& G, NetworKit::StronglyConnectedC
   //       std::cout  << "sizes "<< v.second <<  " \n" << std::flush;
   //   }
 
-  //  std::cout  <<   "init conden \n" << std::flush;
+  //   std::cout  <<   "init conden \n" << std::flush;
   NetworKit::Graph GG = NetworKit::Graph(sizes.size(), false, true, false);
   //  std::cout << "sizes visited" << not_visited.size() << " \n" << std::flush;
   while(not_visited.size() > 0)
@@ -280,6 +282,7 @@ void sourcesSinksRemoveISolated(Predecessor& G, const akt::Graph & g)
   G.g.forNodes(
                [&](NetworKit::node i)
                {
+                 //                 std::cout << "hello \n" ;
                  if (G.g.degreeOut(i) == 0)
                    {
                      if( G.g.degreeIn(i) == 0)
@@ -296,12 +299,12 @@ void sourcesSinksRemoveISolated(Predecessor& G, const akt::Graph & g)
                        G.sources.insert(i);
                    }
                });
-  //  std::cout  <<   "end sources and sinks \n" << std::flush;  
+  //    std::cout  <<   "end sources and sinks \n" << std::flush;  
 }
 
 std::pair<std::unordered_set<int>, std::unordered_set<int>> RemoveInfiniteFromPredecessor(int s, Predecessor& G, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph &), bool (*cmp)(double, double), std::string walk_type, const akt::Graph & g)
 {
-  NetworKit::StronglyConnectedComponents scc(G.g);
+NetworKit::StronglyConnectedComponents scc(G.g);
   scc.run();
   //  std::cout  <<   "end connected comp \n" << std::flush;
   NetworKit::Graph cond = condensationGraph(G, scc);

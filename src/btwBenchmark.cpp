@@ -143,7 +143,7 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
 
   BenchmarkResults res;
   std::map<std::string,double> ti;
-  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}};
+  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"},{"shortest","active"}};
   if (bs.numberNodes.size() == 0)
     bs.numberNodes = "-1";
     for (auto &st: cost_type)
@@ -211,10 +211,10 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
 
   BenchmarkResults res;
   std::map<std::string,double> ti;
-  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
+  //  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
   if (bs.numberNodes.size() == 0)
     bs.numberNodes = "-1";
-  //  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","active"}};
+  std::vector<std::pair<std::string,std::string>> cost_type{{"shortestrestless","passive"}};
     for (auto &st: cost_type)
       {
             std::vector<std::string> strict;
@@ -320,6 +320,7 @@ void outputBenchmarkResults(const BenchmarkSettings& bs, const BenchmarkResults&
     std::clog << "Time for algorithms (in seconds):\n";
     for(auto &ot: br.optimalTime)
       std::cout << ot.first << " " << ot.second;
+    std::cout <<  "\n";
 }
 
 int main (int argc, char** argv)
