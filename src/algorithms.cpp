@@ -497,7 +497,7 @@ void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, MinHeap &q,
             if (q.index_elem.count(p2) == 1 )
               {
                 q.decreaseKey(q.index_elem[p2], p);
-                std::cout << "DECREASE.................. \n"; 
+                //                std::cout << "DECREASE.................. \n"; 
               }
 
             else
