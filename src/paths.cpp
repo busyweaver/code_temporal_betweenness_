@@ -130,7 +130,7 @@ double co_shortest_foremost(Path *m, int t,  const akt::Graph &g)
 double co_shortest_2restless(Path *m, int t,  const akt::Graph &g)
 {
   double res;
-  display(m);
+  //  display(m);
   if (m == nullptr)
     res = std::numeric_limits<double>::infinity();
   else if ((*m).getLength() == 1 || (*m).getLength() == 0)
@@ -142,6 +142,6 @@ double co_shortest_2restless(Path *m, int t,  const akt::Graph &g)
       else
         res = (*m).getLength();
     }
-  std::cout << res << " res \n";
+  //  std::cout << res << " res \n";
   return res;
 }

@@ -211,10 +211,10 @@ BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
 
   BenchmarkResults res;
   std::map<std::string,double> ti;
-  //  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
+  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
   if (bs.numberNodes.size() == 0)
     bs.numberNodes = "-1";
-  std::vector<std::pair<std::string,std::string>> cost_type{{"shortestrestless","passive"}};
+  //  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","active"}};
     for (auto &st: cost_type)
       {
             std::vector<std::string> strict;

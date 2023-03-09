@@ -2,6 +2,7 @@
 //#include "fibonacciheap.h"
 #include "binaryheap.h"
 #include "predecessor_graph.h"
+//#include "paths.h"
 #include <numeric>
 #include <queue>
 //#include<networkit/graph/Graph.hpp>
@@ -107,8 +108,12 @@ void reinitializeHelperStructOptimal(const akt::Graph& g, int s, OptimalBetweenn
   //   for (int t = 0; t<T ; t++) {
       sbd.deltasvvt[n][t] = 0.0;
       sbd.deltadot[n][t] = 0.0;
+      if(sbd.opt_walk[n][t] != nullptr)
+        {
+          if (sbd.opt_walk[n][t]->arrival() == t)
+            delete sbd.opt_walk[n][t];
+        }
 
-      delete sbd.opt_walk[n][t];
       sbd.opt_walk[n][t]=nullptr;
       sbd.pre[n][t].clear();
       sbd.cur_best[n][t]=std::numeric_limits<double>::infinity();
@@ -749,8 +754,8 @@ std::unordered_set<long int> optimalUpdateBetweenness(int s, const akt::Graph& g
   //printf("alo3\n");
   //  printf("start pred \n");
   Predecessor G = Predecessor(g, sbd.pre, s);
-  //  printf("fin pred \n");
-  printPred(G, g);
+  //    printf("fin pred \n");
+  //  printPred(G, g);
   //sourcesSinksRemoveISolated(G,g);
   std::pair<std::unordered_set<int>, std::unordered_set<int>> p;
   //  printf("alo2 avant %ld\n",G.g.numberOfNodes());
@@ -807,7 +812,7 @@ std::unordered_set<long int> optimalUpdateBetweenness(int s, const akt::Graph& g
   
   UpdateBetweenness(sbd,  g.events.size(), visited);
   UpdateBetweenness_exact(sbd, g.events.size(),s, visited);
-  //  display_tot(sbd);
+  //    display_tot(sbd);
   // for(auto &it : G.starting_time)
   //   std::cout << "starting " << it.first<< " " << it.second << "\n";
   // for(auto &it : vis_sig)
@@ -950,9 +955,9 @@ namespace akt {
       printf("*********************** new treatment %d / %d *****************************\n",s,g.N()-1);
       //      display_tot(sbd);
       auto vis = optimalComputeDistancesSigmas(g, strict, s, sbd, cost2, cmp2, walk_type);
-      display_tot(sbd);
+      //      display_tot(sbd);
       auto vis2 = optimalUpdateBetweenness(s, g, sbd, cost2, cmp2, walk_type);
-      display_tot(sbd);
+      //      display_tot(sbd);
       if (walk_type == "active")
         reinitializeHelperStructOptimal(g, s, sbd, vis2);
       else
@@ -966,7 +971,7 @@ namespace akt {
     }
     totalBetweenness_compute(sbd, g.N(), g.events.size());
     //    std::cout << "end total_bet_comp "<< "\n" << std::flush;
-    display_tot(sbd);
+    //    display_tot(sbd);
     return {sbd.betweenness , sbd.betweenness_exact, sbd.totalBetweenness};
 
   }
