@@ -27,10 +27,13 @@ std::pair<std::unordered_set<int>, std::unordered_set<int>> RemoveInfiniteFromPr
 
 void sourcesSinksRemoveISolated(Predecessor& G, const akt::Graph & g);
 
-std::unordered_set<long int> VolumePathAt(Predecessor& G, int s, OptimalBetweennessData &sbd, const akt::Graph &g);
+std::vector<long int> VolumePathAt(Predecessor& G, int s, OptimalBetweennessData &sbd, const akt::Graph &g);
 
-void copySigmas(std::unordered_set<long int> &visited,OptimalBetweennessData &sbd, const akt::Graph &g);
-std::unordered_set<long int> OptimalSigma(int node, Predecessor &G, OptimalBetweennessData &sbd, const akt::Graph& g, double (*cost)(Path*, int, const akt::Graph&), std::unordered_set<int> node_inf);
+void copySigmas(std::vector<long int> &visited,OptimalBetweennessData &sbd, const akt::Graph &g);
+
+std::vector<long int> OptimalSigma(int node, Predecessor &G, OptimalBetweennessData &sbd, const akt::Graph& g, double (*cost)(Path*, int, const akt::Graph&), std::unordered_set<int> node_inf);
+
+std::vector<long int> OptimalSigmaBoost(int node, Predecessor &G, OptimalBetweennessData &sbd, const akt::Graph& g);
 
 void ComputeDeltaSvvt(Predecessor& G, int s, OptimalBetweennessData &sbd, const akt::Graph&);
 void PredecessorGraphToOrdered(Predecessor& G, int  T, int n, std::string walk_type);

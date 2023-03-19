@@ -72,6 +72,7 @@ namespace std
   // Distances to each vertex (*not* vertex __appearance__)
   std::vector<double> optimalNode;
   // Number of shortests paths from a source to each vertex (*not* vertex __appearance__)
-  std::vector<double> totalSigma;
+    std::vector<double> totalSigma;
     std::vector<double> totalBetweenness;
+    std::vector<long int> visited;
 };

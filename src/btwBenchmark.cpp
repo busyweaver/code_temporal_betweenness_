@@ -90,6 +90,29 @@ void writeNodeIds(std::vector<std::string> ids, BenchmarkSettings& bs)
 
 }
 
+void writeStaticBet(std::vector<double> p, BenchmarkSettings& bs)
+{
+  std::string s = "staticBet";
+  std::cout << "write start "<< "\n" << std::flush;
+  std::string path;
+  if(bs.edgesDirected == false)
+    path = bs.filename+"_undirected_exp";
+  else
+    path = bs.filename+"_directed_exp";
+  if(bs.runBoost)
+    path = path+"_boost";
+  const char* str = path.c_str();
+
+  mkdir(str,0777);
+
+  std::ofstream staticBet;
+  staticBet.open (path+"/"+ s +".txt");
+  for(auto &e : p)
+    staticBet << e << "\n";
+  staticBet.close();
+
+}
+
 
 void writeToFile(const akt::Graph& g, BenchmarkSettings& bs, std::string s, std::pair<std::vector<std::vector<double>>,std::vector<std::vector<double>>> p)
 {
@@ -143,64 +166,62 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
 
   BenchmarkResults res;
   std::map<std::string,double> ti;
+  //  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"},{"shortest","active"}};
   std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"},{"shortest","active"}};
   if (bs.numberNodes.size() == 0)
     bs.numberNodes = "-1";
-    for (auto &st: cost_type)
-      {
+    for (auto &st: cost_type){
             std::vector<std::string> strict;
             if(bs.runNonStrict == true)
               strict.push_back("non-strict");
             if(bs.runStrict == true)
                 strict.push_back("strict");
-
-
-            for (auto &stri: strict)
-              {
+            for (auto &stri: strict){
                 bool str_bool;
                 if (stri == "strict")
                   str_bool = true;
                 else
                   str_bool = false;
                 //std::clog << "Starting  " << st.first << " " << st.second << std::endl;
-
-                    std::cout << stri + "_"+st.first+"_"+st.second << "\n";
-                    auto start = std::chrono::high_resolution_clock::now();
-                    auto y = optimalBetweennessBoost(g, str_bool, st.first, st.second, stoi(bs.numberNodes));
-                    std::pair< std::vector<std::vector<double>>, std::vector<std::vector<double>> > x;
-                    std::vector<std::vector<double>> bet;
-                    std::vector<std::vector<double>> bet_ex;
-                    std::vector<double> bet_sum;
-                    std::tie (bet, bet_ex, bet_sum) = y;
-                    x.first = bet;
-                    x.second = bet_ex;
-                    auto end = std::chrono::high_resolution_clock::now();
-                    writeToFile(g, bs, stri+"_"+st.first+"_"+st.second+"_"+bs.numberNodes, x);
-                    std::cout << "end calcul "<< "\n" << std::flush;
-                    std::chrono::duration<double> time = end - start;
-                    res.optimalTime["non-strict_"+st.first+"_"+st.second] = time.count();
-                    std::cout << "time elapsed : "  << time.count() << "\n";
-                    if(bs.runTest && ((st.first == "shortest" && st.second== "passive")  || (st.first == "shortestforemost" && st.second== "passive")) ) 
-                      {
-                        std::cout << "START TEST \n";
-                        auto p = shortestBetweenness(g, str_bool);
-                        bool test;
-                        if (st.first == "shortest" && st.second== "passive")
-                          test = check(p.first, bet_sum);
-                        else
-                          test = check(p.second, bet_sum);
-                        if(!test)
-                          {
-                            std::cout << "probleme test";
-                            exit(-1);
-                          }
-                        else
-                          std::cout << "test OK! \n";
-                      }
-
+                std::cout << stri + "_"+st.first+"_"+st.second << "\n";
+                auto start = std::chrono::high_resolution_clock::now();
+                auto y = optimalBetweennessBoost(g, str_bool, st.first, st.second, stoi(bs.numberNodes));
+                auto end = std::chrono::high_resolution_clock::now();
+                std::pair< std::vector<std::vector<double>>, std::vector<std::vector<double>> > x;
+                std::vector<std::vector<double>> bet;
+                std::vector<std::vector<double>> bet_ex;
+                std::vector<double> bet_sum;
+                std::tie (bet, bet_ex, bet_sum) = y;
+                x.first = bet;
+                x.second = bet_ex;
+                writeToFile(g, bs, stri+"_"+st.first+"_"+st.second+"_"+bs.numberNodes, x);
+                std::cout << "end calcul "<< "\n" << std::flush;
+                std::chrono::duration<double> time = end - start;
+                res.optimalTime["non-strict_"+st.first+"_"+st.second] = time.count();
+                std::cout << "time elapsed : "  << time.count() << "\n";
+                if(bs.runTest && ((st.first == "shortest" && st.second== "passive")  || (st.first == "shortestforemost" && st.second== "passive")) ){
+                  std::cout << "START TEST \n";
+                  auto start = std::chrono::high_resolution_clock::now();
+                  auto p = shortestBetweenness(g, str_bool);
+                  auto end = std::chrono::high_resolution_clock::now();
+                  std::chrono::duration<double> time = end - start;
+                  std::cout << "time elapsed Test: "  << time.count() << "\n";
+                  bool test;
+                  if (st.first == "shortest" && st.second== "passive")
+                    test = check(p.first, bet_sum);
+                  else
+                    test = check(p.second, bet_sum);
+                  if(!test){
+                    std::cout << "probleme test";
+                    exit(-1);
+                  }
+                  else
+                    std::cout << "test OK! \n";
+                }
               }
-
-      }
+    }
+    auto p = shortestBetweennessStatic(g);
+    writeStaticBet(p, bs);
     writeTime(g, bs, res.optimalTime);
 
     return res;

@@ -73,8 +73,6 @@ std::pair<std::map<long int,long int >,std::map<long int,long int >> numberNodes
                       }
                     else
                       starting[k] = key;
-                    //                    std::cout << "number res =>" << k << " "<< key << " "<<starting[k]<< "\n"; 
-                    // std::cout << v << gg.events[t] << "with "<< k << gg.events[key] << "\n";
                     if(!(ma.count(k*TT + key) == 1))
                       {
                         ma[k*TT + key] = actual;
@@ -84,11 +82,6 @@ std::pair<std::map<long int,long int >,std::map<long int,long int >> numberNodes
                       {
                         ma[v*TT + t] = actual;
                         actual ++;
-                        // if (starting.count(v) == 1)
-                        //   {
-                        //     if(starting[v] > key)
-                        //       starting[v] = key;
-                        //   }
                       }
 
                   }
@@ -378,7 +371,7 @@ NetworKit::StronglyConnectedComponents scc(G.g);
   return {temp_inf, clos_inf};
 }
 
-void copySigmas(std::unordered_set<long int> &visited,OptimalBetweennessData &sbd, const akt::Graph &g)
+void copySigmas(std::vector<long int> &visited,OptimalBetweennessData &sbd, const akt::Graph &g)
 {
   int T = g.events.size();
   for(auto &e : visited)
@@ -387,7 +380,7 @@ void copySigmas(std::unordered_set<long int> &visited,OptimalBetweennessData &sb
 }
 
 
-void volumePathAtRec(int s,int e,Predecessor& G,OptimalBetweennessData &sbd, const akt::Graph &g, std::unordered_set<long int> &visited)
+void volumePathAtRec(int s,int e,Predecessor& G,OptimalBetweennessData &sbd, const akt::Graph &g, std::vector<long int> &visited)
 {
 
   int T = g.events.size();
@@ -400,7 +393,7 @@ void volumePathAtRec(int s,int e,Predecessor& G,OptimalBetweennessData &sbd, con
       // std::cout << "ici\n";
       sbd.sigmadot[e/T][e%T] = 1;
       //      sbd.sigma[e/T][e%T] = 1;
-      visited.insert(e);
+      visited.push_back(e);
     }
 
   else
@@ -422,7 +415,7 @@ void volumePathAtRec(int s,int e,Predecessor& G,OptimalBetweennessData &sbd, con
       // printf("fin\n");
       sbd.sigmadot[e/T][e%T] = res;
       //      sbd.sigma[e/T][e%T] = res;
-      visited.insert(e);
+      visited.push_back(e);
       // std::cout << "volume dot " <<e/T << " " << e%T << " = " << res << "\n";
 
       if (sbd.cur_best[e/T][e%T] == sbd.optimalNode[e/T])
@@ -434,34 +427,26 @@ void volumePathAtRec(int s,int e,Predecessor& G,OptimalBetweennessData &sbd, con
 }
 
 
-std::unordered_set<long int> VolumePathAt(Predecessor& G, int s, OptimalBetweennessData &sbd, const akt::Graph &g)
+std::vector<long int> VolumePathAt(Predecessor& G, int s, OptimalBetweennessData &sbd, const akt::Graph &g)
 {
-  std::unordered_set<long int> visited;
+  std::vector<long int> visited;
   for (auto &itt : G.sinks)
     {
-      //      printf("ssssssssssssssiiiiiiiiiiiiiinnnnnnnnnnnks %ld %ld\n",G.ma_inv[itt]/g.events.size(), G.ma_inv[itt]%g.events.size());
       volumePathAtRec(s,G.ma_inv[itt],G,sbd,g, visited);
     }
   return visited;
 }
 
-std::unordered_set<long int> OptimalSigma(int node, Predecessor &G, OptimalBetweennessData &sbd, const akt::Graph& g,  double (*cost)(Path*, int, const akt::Graph& g), std::unordered_set<int> node_inf)
-{ //start function
-  //  printf("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn");
-  std::unordered_set<long int> visited;
+std::vector<long int> OptimalSigma(int node, Predecessor &G, OptimalBetweennessData &sbd, const akt::Graph& g,  double (*cost)(Path*, int, const akt::Graph& g), std::unordered_set<int> node_inf)
+{
+  std::vector<long int> visited;
   int T = g.events.size();
-  for (auto &elem : G.ma)
-    {
-      //      std::cout << "G -> "<< "T " << T << "elem "<< elem.first << " "<< elem.first/T << " " << elem.first%T << "\n";
-    }
-  //  std::cout << "1 1 -> " << " " <<  G.ma.count(T +1) <<"\n";
   for(int k = 0; k < g.N(); k++)
     {
-
       int pred = G.starting_time[k];
       for (int t = G.starting_time[k]; t < T ;t ++)
         {
-          visited.insert(k*T + t);
+          visited.push_back(k*T + t);
           //          std::cout << k << " " << t << "\n";
           // int pred = -1;
           // for (int t = 0; t < T ;t ++) {
@@ -508,6 +493,43 @@ std::unordered_set<long int> OptimalSigma(int node, Predecessor &G, OptimalBetwe
   return visited;
 }
 
+std::vector<long int> OptimalSigmaBoost(int node, Predecessor &G, OptimalBetweennessData &sbd, const akt::Graph& g)
+{
+  std::vector<long int> visited;
+  int T = g.events.size();
+  for(int k = 0; k < g.N(); k++){
+      int pred = G.starting_time[k];
+      for (int t = G.starting_time[k]; t < T ;t ++){
+          visited.push_back(k*T + t);
+          if (node == k){
+              if (sbd.sigmadot[k][t] > 0 )
+                sbd.sigma[k][t] = sbd.sigmadot[k][t];
+              else
+                sbd.sigma[k][t] = 0;
+            }
+          else{
+              if (G.ma.count(k*T +t) == 1 &&  G.g.hasNode(G.ma[k*T + t])){
+                  if(sbd.cur_best[k][t] == sbd.cur_best[k][pred]){
+                      sbd.sigma[k][t] = sbd.sigma[k][pred] + sbd.sigmadot[k][t];
+                      pred = t;
+                      if (sbd.cur_best[k][t] == sbd.optimalNode[k])
+                        sbd.totalSigmaT[k][t] = sbd.sigma[k][t];
+                    }
+                  else{
+                      sbd.sigma[k][t] = sbd.sigmadot[k][t];
+                      pred = t;
+                    }
+                }
+              else{
+                  sbd.sigma[k][t] = sbd.sigma[k][pred];
+                  if (sbd.cur_best[k][pred] == sbd.optimalNode[k])
+                    sbd.totalSigmaT[k][t] = sbd.sigma[k][t];
+                }
+            }
+        }
+    }
+  return visited;
+}
 
 void CompleteDelta(Predecessor& G, OptimalBetweennessData &sbd, const akt::Graph& g)
 {
