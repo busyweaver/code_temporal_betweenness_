@@ -90,6 +90,29 @@ void writeNodeIds(std::vector<std::string> ids, BenchmarkSettings& bs)
 
 }
 
+void writeTimestamps(std::vector<int> ti, BenchmarkSettings& bs)
+{
+  std::string s = "timeStamps";
+  std::cout << "write start "<< "\n" << std::flush;
+  std::string path;
+  if(bs.edgesDirected == false)
+    path = bs.filename+"_undirected_exp";
+  else
+    path = bs.filename+"_directed_exp";
+  if(bs.runBoost)
+    path = path+"_boost";
+  const char* str = path.c_str();
+
+  mkdir(str,0777);
+
+  std::ofstream time;
+  time.open (path+"/"+ s +".txt");
+  for(int i = 0;i< ti.size(); i++)
+    time << i << " "<< ti[i] << "\n";
+  time.close();
+
+}
+
 void writeStaticBet(std::vector<double> p, BenchmarkSettings& bs)
 {
   std::string s = "staticBet";
@@ -326,6 +349,7 @@ BenchmarkResults readGraphRunBenchmarks(BenchmarkSettings& bs)
     std::clog << g.T() << " (non-empty) timesteps\n";
     BenchmarkResults br;
     writeNodeIds(ids,bs);
+    writeTimestamps(g.events,bs);
     if(bs.runBoost)
       br = runBenchmarksShort(g, bs);
     else
