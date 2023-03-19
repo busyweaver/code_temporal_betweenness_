@@ -845,7 +845,6 @@ std::vector<long int> optimalUpdateBetweenness(int s, const akt::Graph& g, Optim
 
 std::vector<long int> optimalUpdateBetweennessBoost(int s, const akt::Graph& g, OptimalBetweennessData& sbd, std::string walk_type)
 {
-  printf("lol");
   Predecessor G = Predecessor(g, sbd.pre, s);
   //printPred(G, g);
   std::pair<std::unordered_set<int>, std::unordered_set<int>> p;
@@ -978,7 +977,6 @@ namespace akt {
  std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>> , std::vector<double> > optimalBetweennessBoost(const Graph& g, bool strict, std::string cost, std::string walk_type, int numberNodes)
   {
     double (*cost2)(Path*, int, const akt::Graph&);
-    //it has to be shortest
     if(cost == "shortest")
       cost2 = &co_short;
     else if(cost == "shortestrestless")

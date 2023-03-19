@@ -197,7 +197,7 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
                 writeToFile(g, bs, stri+"_"+st.first+"_"+st.second+"_"+bs.numberNodes, x);
                 std::cout << "end calcul "<< "\n" << std::flush;
                 std::chrono::duration<double> time = end - start;
-                res.optimalTime["non-strict_"+st.first+"_"+st.second] = time.count();
+                res.optimalTime[stri+"_"+st.first+"_"+st.second] = time.count();
                 std::cout << "time elapsed : "  << time.count() << "\n";
                 if(bs.runTest && ((st.first == "shortest" && st.second== "passive")  || (st.first == "shortestforemost" && st.second== "passive")) ){
                   std::cout << "START TEST \n";
