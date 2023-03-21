@@ -228,6 +228,7 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
                   auto p = shortestBetweenness(g, str_bool);
                   auto end = std::chrono::high_resolution_clock::now();
                   std::chrono::duration<double> time = end - start;
+                  res.optimalTime["buss_"+st.first+"_"+st.second] = time.count();
                   std::cout << "time elapsed Test: "  << time.count() << "\n";
                   bool test;
                   if (st.first == "shortest" && st.second== "passive")
@@ -241,11 +242,16 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
                   else
                     std::cout << "test OK! \n";
                 }
+                start = std::chrono::high_resolution_clock::now();
+                auto p = shortestBetweennessStatic(g);
+                end = std::chrono::high_resolution_clock::now();
+                time = end - start;
+                res.optimalTime["static_betweenness"] = time.count();
+                writeStaticBet(p, bs);
+                writeTime(g, bs, res.optimalTime);
               }
     }
-    auto p = shortestBetweennessStatic(g);
-    writeStaticBet(p, bs);
-    writeTime(g, bs, res.optimalTime);
+
 
     return res;
 }
