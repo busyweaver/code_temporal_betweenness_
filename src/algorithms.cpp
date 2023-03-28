@@ -857,7 +857,8 @@ std::vector<long int> optimalUpdateBetweennessBoost(int s, const akt::Graph& g, 
   std::map<int,int> preced;
   preced = BeforeNodes(G, g);
   std::unordered_set<long int> visited;
-   visited = GeneralContribution(g, G, s, sbd, preced, walk_type);
+  //  display_tot(sbd);
+  visited = GeneralContribution(g, G, s, sbd, preced, walk_type);
   UpdateBetweenness(sbd,  g.events.size(), visited);
   UpdateBetweenness_exact(sbd, g.events.size(),s, visited);
   return vis_sig;
@@ -1001,13 +1002,13 @@ namespace akt {
       if(walk_type == "active")
         {
           vis2 = optimalUpdateBetweennessBoost(s, g, sbd, walk_type);
-          //display_tot(sbd);
+          //          display_tot(sbd);
           reinitializeHelperStructOptimal(g, s, sbd, vis2);
         }
       else
         {
           shortestEmptyStackUpdateBetweennessBoost(s, sbd, g);
-          //display_tot(sbd);
+          //          display_tot(sbd);
           reinitializeHelperStructOptimalBoost(g, s, sbd);
           //display_tot(sbd);
         }
@@ -1015,7 +1016,7 @@ namespace akt {
       i++;
     }
     totalBetweenness_compute(sbd, g.N(), g.events.size());
-    //    display_tot(sbd);
+    //display_tot(sbd);
     return {sbd.betweenness , sbd.betweenness_exact, sbd.totalBetweenness};
   }
 

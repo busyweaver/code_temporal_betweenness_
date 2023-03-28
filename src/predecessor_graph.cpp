@@ -605,8 +605,8 @@ void PredecessorGraphToOrdered(Predecessor& G, int  T, int n, std::string walk_t
         {
           G.times_ord[v].push_back(tmp.first);
         }
-      // if(walk_type == "active")
-      //   std::sort(G.times_ord[v].begin(), G.times_ord[v].end(), std::greater<long int>()); 
+      if(walk_type == "active")
+        std::sort(G.times_ord[v].begin(), G.times_ord[v].end(), std::greater<long int>()); 
     }
 }
 
@@ -651,19 +651,16 @@ std::map<int,int> BeforeNodes(Predecessor& G, const akt::Graph& g)
 void IntermediaryNodes(int vt, int vtp, std::map<int,int>& before,OptimalBetweennessData& sbd, const akt::Graph& g, double s, int pred_time, std::unordered_set<long int>& visited)
 {
   auto T = g.events.size();
-  // std::cout  << "vt " << vt/T << " " << vt%T << "vtp " << vtp/T << " "<<vtp%T << "\n";
   auto v = vtp / T;
   auto tpp = vtp % T;
   auto t = vt % T;
-  // std::cout << "before val : " << "v "<< v << " tpp "<< tpp << " t " << t<< "pred_time " << pred_time << "before[v*T + tpp ]" << before[v*T + tpp ]/T << " "<<before[v*T + tpp ]%T <<"\n" << std::flush;
-
+  // std::cout << "inter " << v << "t " << t << "tpp "<< tpp << " s " << s << " pred_time " << pred_time<< "\n";
   while (tpp >= pred_time && before[v*T + tpp ]%T == t && visited.count(v*T + tpp) == 0)
     {
-      // std::cout << "*********** change val inter val" << "v "<< v << " tpp "<< tpp << " t " << t<< "pred_time " << pred_time << "\n" << std::flush;
-      sbd.deltadot[v][tpp] = s + sbd.deltasvvt[v][tpp];
-      tpp = tpp - 1;
+      //      std::cout << "  loop " << v << "t " << t << "tpp "<< tpp << "\n";
+      sbd.deltadot[v][tpp] += s;// + sbd.deltasvvt[v][tpp];
       visited.insert(v*T + tpp);
-      // std::cout << "before val" << "v "<< v << " tpp "<< tpp << " t " << t<< "pred_time " << pred_time << "\n" << std::flush;
+      tpp = tpp - 1;
     }
 }
 
@@ -693,13 +690,8 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
       else
         pred_time = v%T+1;
 
-      // std::cout << "check increasing time " << tp;
       for (auto &w : l_nei[v][tp])
         {
-          //          std::cout << "next" << v/T << " " << v%T << " -> "  << w << " " << tp << "\n" << std::flush;
-          // char tmp;
-          // scanf("%c",&tmp);
-
           DeltaSvt(w*T + tp,  G,  sbd, g, preced , walk_type, visited);
           if(sbd.sigma[w][tp] == 0)
             {
@@ -707,7 +699,6 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
               exit(-1);
             }
           s += (sbd.sigma[v/T][v%T]/sbd.sigma[w][tp])*sbd.deltadot[w][tp];
-          //          partial_sum[tp] = s;
         }
 
 
