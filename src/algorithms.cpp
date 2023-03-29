@@ -387,7 +387,7 @@ void optimal_initialization(const akt::Graph& g, int s, OptimalBetweennessData& 
   }
 }
 
-void optimalInitializationBoost(const akt::Graph& g, int s, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), std::queue<int> &q)
+void optimalInitializationBoost(const akt::Graph& g, int s, OptimalBetweennessData& sbd, std::queue<int> &q)
 {
   int T = g.events.size();
   for (int t = g.minimalTimestep(); (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[s][t].nextTimestep) {
@@ -584,7 +584,7 @@ std::vector<long int>  optimalComputeDistancesSigmas(const akt::Graph& g, bool s
   return visited;
 }
 
-void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), std::string& walk_type)
+void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, OptimalBetweennessData& sbd, std::string& walk_type, double k)
 {
   int T = g.events.size();
   int strict = 0;
@@ -593,7 +593,7 @@ void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, O
   std::queue<int>* q = new queue<int>();
   std::queue<int>* qp = new queue<int>();
   int l = 0;
-  optimalInitializationBoost(g, s, sbd, cost, *q);
+  optimalInitializationBoost(g, s, sbd, *q);
   while ((*q).size() > 0 ) {
     while((*q).size() > 0){
       auto elem = (*q).front();
@@ -604,7 +604,7 @@ void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, O
       for (int t = curtime; (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[curv][t].nextTimestep) {
         for (auto w : g.adjacencyList()[curv][t].neighbours) {
           if((! (curv == s && t != curtime)) ){
-              if(curv == s || t >= (curtime+strict)){
+            if((curv == s || t >= (curtime+strict)) && (g.events[t] - g.events[(curtime+strict)] <= k ) ){
                   if (sbd.cur_best[w][t] == std::numeric_limits<double>::infinity() || (sbd.cur_best[w][t] >= l+1 && sbd.pre[w][t].size() == 0) ){
                     sbd.cur_best[w][t] = l+1;
                     if (l+1 < sbd.optimalNode[w])
@@ -612,7 +612,7 @@ void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, O
                     (*qp).push(w*T + t);
                     if (walk_type == "active")
                       {
-                        for (int tpp = t + strict; (tpp >= 0) && (tpp <= g.maximalTimestep()); tpp = g.adjacencyList()[w][tpp].nextTimestep_inv) {
+                        for (int tpp = t + strict; (tpp >= 0) && (tpp <= g.maximalTimestep()) && (g.events[tpp] - g.events[(t+strict)] <= k ); tpp = g.adjacencyList()[w][tpp].nextTimestep_inv) {
                           if (sbd.cur_best[w][tpp] > l+1){
                             sbd.visited.push_back(w*T + tpp);
                             //sbd.pre[w][tpp].clear();
@@ -977,11 +977,12 @@ namespace akt {
 
  std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>> , std::vector<double> > optimalBetweennessBoost(const Graph& g, bool strict, std::string cost, std::string walk_type, int numberNodes)
   {
-    double (*cost2)(Path*, int, const akt::Graph&);
+    double k;
     if(cost == "shortest")
-      cost2 = &co_short;
+      k = std::numeric_limits<double>::infinity();
     else if(cost == "shortestrestless")
-      cost2 = &co_shortest_2restless;
+      k = (g.maxActualTime() - g.minActualTime()) * 10 / 100;
+    std::cout << "REST = " << k <<"\n";
     auto sbd = OptimalBetweennessData(g);
     // Stores the betweenness values; initialize to 1 because of the formula for betweenness having a constant +1
     int s = 0;
@@ -997,18 +998,18 @@ namespace akt {
             s = distrib(gen);
           sampled.insert(s);
         }
-      optimalComputeDistancesSigmasBoost(g, strict, s, sbd, cost2, walk_type);
+      optimalComputeDistancesSigmasBoost(g, strict, s, sbd,  walk_type, k);
       std::vector<long int> vis2;
       if(walk_type == "active")
         {
           vis2 = optimalUpdateBetweennessBoost(s, g, sbd, walk_type);
-          //          display_tot(sbd);
+          //display_tot(sbd);
           reinitializeHelperStructOptimal(g, s, sbd, vis2);
         }
       else
         {
           shortestEmptyStackUpdateBetweennessBoost(s, sbd, g);
-          //          display_tot(sbd);
+          //display_tot(sbd);
           reinitializeHelperStructOptimalBoost(g, s, sbd);
           //display_tot(sbd);
         }
@@ -1016,7 +1017,7 @@ namespace akt {
       i++;
     }
     totalBetweenness_compute(sbd, g.N(), g.events.size());
-    //display_tot(sbd);
+    //    display_tot(sbd);
     return {sbd.betweenness , sbd.betweenness_exact, sbd.totalBetweenness};
   }
 

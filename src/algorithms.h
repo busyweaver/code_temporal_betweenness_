@@ -7,7 +7,7 @@ namespace akt {
 	// Returns the shortest betweenness and shortest foremost betweenness (with strictness depending on the parameter)
 	std::pair<std::vector<double>, std::vector<double>> shortestBetweenness(const akt::Graph& g, bool strict);
   std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>> , std::vector<double> > optimalBetweenness(const Graph& g, bool strict, std::string cost, std::string cmp, std::string walk_type, int numberNodes);
-  std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>> , std::vector<double> > optimalBetweennessBoost(const Graph& g, bool strict, std::string cost, std::string walk_type, int numberNodes);
+  std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>> , std::vector<double> > optimalBetweennessBoost(const Graph& g, bool strict, std::string rest, std::string walk_type, int numberNodes);
 
 	// Returns the strict prefix-foremost betwenness
 	std::vector<double>	prefixForemostBetweenness(const akt::Graph& g);

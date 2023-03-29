@@ -190,7 +190,7 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
   BenchmarkResults res;
   std::map<std::string,double> ti;
   //  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"},{"shortest","active"}};
-  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"},{"shortest","active"}};
+  std::vector<std::pair<std::string,std::string>> cost_type{{"shortestrestless","passive"},{"shortestrestless","active"}, {"shortest","passive"},{"shortest","active"}};
   if (bs.numberNodes.size() == 0)
     bs.numberNodes = "-1";
     for (auto &st: cost_type){

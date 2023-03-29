@@ -78,7 +78,7 @@ namespace akt {
           //   }
           events = ev;
           events_rev = ev_rev;
-            edges = tes.size();
+          edges = tes.size();
 
             // Add edges (without caring about the nextTimestep field for now)
             for (const auto& te : tes)
@@ -161,6 +161,10 @@ namespace akt {
       int maximalTimestep() const { return lastTime; }
         // maybe it can be improved, by taking the first real time step
         int minimalTimestep() const { return 0; }
+
+      int maxActualTime() const { return events[T()-1]; }
+
+      int minActualTime() const { return events[0]; }
 
         // Returns the O(nT) adjacency list for the graph
         const std::vector<std::vector<AppearanceNeighbourhood>>& adjacencyList() const { return adj; }
