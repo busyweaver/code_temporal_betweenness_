@@ -982,7 +982,7 @@ namespace akt {
       k = std::numeric_limits<double>::infinity();
     else if(cost == "shortestrestless")
       k = (g.maxActualTime() - g.minActualTime()) * 10 / 100;
-    std::cout << "REST = " << k <<"\n";
+    std::cout << "REST = " << k << " "<<g.minActualTime() << " "<< g.maxActualTime()<<  "\n";
     auto sbd = OptimalBetweennessData(g);
     // Stores the betweenness values; initialize to 1 because of the formula for betweenness having a constant +1
     int s = 0;

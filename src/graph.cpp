@@ -11,10 +11,8 @@ void removeBoringTimesteps(akt::TemporalEdgeSet& edges, std::map<int, int> &even
     // Handle first edge separately
     if (!edges.empty())
         timestepsRemoved = edges.cbegin()->when;
-    
     // Flatten the set into an array to be able to easily modify the when-values
     auto flat = std::vector<akt::TemporalEdge>(edges.cbegin(), edges.cend());
-    
     for (auto& te : flat) {
 
         // te.when -= timestepsRemoved;
@@ -26,7 +24,6 @@ void removeBoringTimesteps(akt::TemporalEdgeSet& edges, std::map<int, int> &even
         // lastTimestep = te.when;
       te.when = events_rev[te.when];
     }
-    
     // Re-blow into a tree
     edges = akt::TemporalEdgeSet(flat.cbegin(), flat.cend(), &akt::temporalEdgeLessTimewise);
 }
