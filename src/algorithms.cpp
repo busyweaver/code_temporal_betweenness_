@@ -641,6 +641,7 @@ void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, O
   delete qp;
 }
 
+// main algorithm for shortest paths variants on passive case
 void shortestEmptyStackUpdateBetweennessBoost(int s, OptimalBetweennessData& sbd, const akt::Graph& g)
 {
   int T = g.events.size();
@@ -711,13 +712,6 @@ void UpdateBetweenness(OptimalBetweennessData& sbd, int T, std::unordered_set<lo
       sbd.betweenness[i][t] = sbd.betweenness[i][t] + sbd.deltadot[i][t];
       sbd.betweenness_exact[i][t] = sbd.betweenness_exact[i][t] + sbd.deltadot[i][t];
     }
-  // for (int i = 0; i < n; i++)
-  //   {
-  //     for (int t = 0; t<T;t++) {
-  //       sbd.betweenness[i][t] = sbd.betweenness[i][t] + sbd.deltadot[i][t];
-  //       sbd.betweenness_exact[i][t] = sbd.betweenness_exact[i][t] + sbd.deltadot[i][t];
-  //     }
-  //   }
 }
 
 void totalBetweenness_compute(OptimalBetweennessData& sbd, int n, int T)
@@ -729,7 +723,6 @@ void totalBetweenness_compute(OptimalBetweennessData& sbd, int n, int T)
         s += sbd.betweenness_exact[i][t];
       sbd.totalBetweenness[i] = s;
     }
-  //  std::cout << "end total bet compute\n";
 }
 
 void UpdateBetweenness_exact(OptimalBetweennessData& sbd, int T, int s, std::unordered_set<long int>& visited)
@@ -773,22 +766,13 @@ void print_pred_neighbour(Predecessor &G, const akt::Graph& g)
 std::vector<long int> optimalUpdateBetweenness(int s, const akt::Graph& g, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), bool (*cmp)(double, double), std::string walk_type)
 {
 
-  //std::vector<std::vector<double>> betweenness;
-  //printf("alo3\n");
-  //  printf("start pred \n");
   Predecessor G = Predecessor(g, sbd.pre, s);
-  //    printf("fin pred \n");
-  //  printPred(G, g);
   //sourcesSinksRemoveISolated(G,g);
   std::pair<std::unordered_set<int>, std::unordered_set<int>> p;
-  //  printf("alo2 avant %ld\n",G.g.numberOfNodes());
   p = RemoveInfiniteFromPredecessor(s, G, sbd, cost, cmp, walk_type, g);
-  //  printPred(G, g);
-  //  printf("alo2 apres %ld\n",G.g.numberOfNodes());
   int T = g.events.size();
   for(auto &elem : p.first)
     {
-      //      std::cout << "ici" << elem/T << " " << elem%T << "\n";
       sbd.sigmadot[elem/T][elem%T] = std::numeric_limits<double>::infinity(); 
     }
   p.first.insert(p.second.begin(), p.second.end());
@@ -802,15 +786,7 @@ std::vector<long int> optimalUpdateBetweenness(int s, const akt::Graph& g, Optim
           sbd.totalSigmaT[e/T][e%T] = std::numeric_limits<double>::infinity();;
         }
     }
-
-  //  printf("fin infinite paths \n");
-  //  printPred(G, g);
   auto vis_sig = VolumePathAt(G, s, sbd, g);
-  //  std::cout << "sig " << sbd.sigmadot[106][2983] << "\n";
-  //std::cout << "sig " << sbd.sigmadot[108][3017] << "\n";
-  // for(auto &it : vis_sig)
-  //   std::cout << "vis sig 2 " << it/T<< " " << it%T  << "\n";
-  //  display_tot(sbd);
   if(walk_type == "active")
       vis_sig = OptimalSigma(s, G, sbd, g, cost, p.first);
   else
@@ -825,24 +801,13 @@ std::vector<long int> optimalUpdateBetweenness(int s, const akt::Graph& g, Optim
   //print_pred_neighbour(G, g);
   std::map<int,int> preced = BeforeNodes(G, g);
   //  display_tot(sbd);
-
- 
   auto visited = GeneralContribution(g, G, s, sbd, preced, walk_type);
-  // printf("fin general contribution \n");
-  //display_tot(sbd);
-  // for(auto &elem: visited)
-  //   std::cout << "visited " << elem/T << " " << elem%T << "\n";
-  
   UpdateBetweenness(sbd,  g.events.size(), visited);
   UpdateBetweenness_exact(sbd, g.events.size(),s, visited);
-  //    display_tot(sbd);
-  // for(auto &it : G.starting_time)
-  //   std::cout << "starting " << it.first<< " " << it.second << "\n";
-  // for(auto &it : vis_sig)
-  //   std::cout << "vis sig " << it/T<< " " << it%T  << "\n";
   return vis_sig;
 }
 
+// main algorithm for shortest paths variants in active case
 std::vector<long int> optimalUpdateBetweennessBoost(int s, const akt::Graph& g, OptimalBetweennessData& sbd, std::string walk_type)
 {
   Predecessor G = Predecessor(g, sbd.pre, s);
@@ -974,7 +939,7 @@ namespace akt {
     return {sbd.betweenness , sbd.betweenness_exact, sbd.totalBetweenness};
 
   }
-
+  // computes the betweenness centrality on shortest paths variants
  std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>> , std::vector<double> > optimalBetweennessBoost(const Graph& g, bool strict, std::string cost, std::string walk_type, int numberNodes)
   {
     double k;
@@ -1046,7 +1011,6 @@ namespace akt {
       prefixDoForemostBasedSearch(g, s, pbd);
       prefixEmptyStackUpdateBetweenness(s, pbd, res);
     }
-
     return res;
   }
 

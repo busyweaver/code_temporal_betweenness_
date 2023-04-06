@@ -42,6 +42,7 @@ struct BenchmarkSettings
   std::string optimal_cost;
 };
 
+// write execution times into a file
 void writeTime(const akt::Graph& g, BenchmarkSettings& bs, std::map<std::string,double> ti)
 {
   std::cout << "write time start "<< "\n" << std::flush;
@@ -67,6 +68,7 @@ void writeTime(const akt::Graph& g, BenchmarkSettings& bs, std::map<std::string,
   file.close();
 }
 
+// write node ids into a file to recover the nodes to which betweenness values belong
 void writeNodeIds(std::vector<std::string> ids, BenchmarkSettings& bs)
 {
   std::string s = "nodesIds";
@@ -90,6 +92,7 @@ void writeNodeIds(std::vector<std::string> ids, BenchmarkSettings& bs)
 
 }
 
+// write real time stamps to a file in order to recover time betweenness values
 void writeTimestamps(std::vector<int> ti, BenchmarkSettings& bs)
 {
   std::string s = "timeStamps";
@@ -113,6 +116,7 @@ void writeTimestamps(std::vector<int> ti, BenchmarkSettings& bs)
 
 }
 
+// write static betweenness centrality into a file
 void writeStaticBet(std::vector<double> p, BenchmarkSettings& bs)
 {
   std::string s = "staticBet";
@@ -136,7 +140,7 @@ void writeStaticBet(std::vector<double> p, BenchmarkSettings& bs)
 
 }
 
-
+// write betweenness values into a file
 void writeToFile(const akt::Graph& g, BenchmarkSettings& bs, std::string s, std::pair<std::vector<std::vector<double>>,std::vector<std::vector<double>>> p)
 {
   std::cout << "write start "<< "\n" << std::flush;
@@ -168,6 +172,7 @@ void writeToFile(const akt::Graph& g, BenchmarkSettings& bs, std::string s, std:
 
 }
 
+// check the values of B(v) with the algorithm of Buss et al. on shortest and shortest foremost paths
 bool check(std::vector<double> &x, std::vector<double> &y)
 {
   bool res = true;
@@ -184,6 +189,7 @@ bool check(std::vector<double> &x, std::vector<double> &y)
   return res;
 }
 
+// runs benchmark on a specific temporal graph with shortest paths variants using a temporal BFS
 BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
 {
 
@@ -256,6 +262,7 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
     return res;
 }
 
+// runs benchmark on a specific temporal graph with taylored cost functions using dijkstra algorithm
 BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
 {
 
@@ -346,7 +353,6 @@ BenchmarkResults readGraphRunBenchmarks(BenchmarkSettings& bs)
 {
     // Not the perfect solution from the perspective of error handling (opening the file and not checking for success), but simple to write cleanly)
     auto [g, ids] = bs.readFromFile ? readGraphFromFile(bs) : akt::readReduceGraph(std::cin, bs.edgesDirected);
-    
     std::clog << "Graph read: " << g.N() << " nodes, ";
     if (bs.edgesDirected)
         std::clog << g.M() << " (unique) directed edges, ";
