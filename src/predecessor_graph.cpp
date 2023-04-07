@@ -666,8 +666,6 @@ void IntermediaryNodes(int vt, int vtp, std::map<int,int>& before,OptimalBetween
 
 void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Graph& g, std::map<int, int> &preced , std::string walk_type, std::unordered_set<long int>& visited)
 {
-  // for(auto &elem : visited)
-  //   printf("**************************************************************///////\n");
   std::map<long int, std::map<long int, std::vector<long int> > >& l_nei = G.ordered_neighb;
   int T = g.events.size();
   if (visited.count(v) == 1)
@@ -675,7 +673,7 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
       // std::cout << "stop immediately" <<   "\n" << std::flush;;
       return;
     }
-  //  std::cout << "new"  << v/T << " " << v%T << "\n";
+  //std::cout << "new"  << v/T << " " << v%T << "\n";
   //  std::map<int, double> partial_sum;
   std::map<int, double> contrib_local;
   auto s = 0.0;
@@ -714,7 +712,7 @@ void DeltaSvt(int v, Predecessor& G, OptimalBetweennessData& sbd, const akt::Gra
     }
   sbd.deltadot[v/T][v%T] += s;// + sbd.deltasvvt[v/T][v%T];
   visited.insert(v);
-  // std::cout << "end "  << v/T << " " << v%T << " s "<< s << "\n";
+  //std::cout << "end "  << v/T << " " << v%T << " s "<< s << "\n";
 }
 
 
