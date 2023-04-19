@@ -195,8 +195,12 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
 
   BenchmarkResults res;
   std::map<std::string,double> ti;
-  //std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"},{"shortest","active"}};
-  std::vector<std::pair<std::string,std::string>> cost_type{{"shortestrestless","passive"},{"shortestrestless","active"}, {"shortest","passive"},{"shortest","active"}};
+  std::vector<std::pair<std::string,std::string>> cost_type;
+  if(bs.runBoost)
+    cost_type = {{"shortestrestless","passive"},{"shortestrestless","active"}, {"shortest","passive"},{"shortest","active"}, {"shortestforemost","passive"}};
+  else
+    cost_type = {{"shortestforemost","passive"}};
+
   if (bs.numberNodes.size() == 0)
     bs.numberNodes = "-1";
     for (auto &st: cost_type){
@@ -214,7 +218,11 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
                 //std::clog << "Starting  " << st.first << " " << st.second << std::endl;
                 std::cout << stri + "_"+st.first+"_"+st.second << "\n";
                 auto start = std::chrono::high_resolution_clock::now();
-                auto y = optimalBetweennessBoost(g, str_bool, st.first, st.second, stoi(bs.numberNodes));
+                std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>> , std::vector<double> > y;
+                if(bs.runBoost)
+                  y = optimalBetweennessBoost(g, str_bool, st.first, st.second, stoi(bs.numberNodes));
+                else
+                  y = optimalBetweenness(g, str_bool, st.first, "le", st.second, stoi(bs.numberNodes));
                 auto end = std::chrono::high_resolution_clock::now();
                 std::pair< std::vector<std::vector<double>>, std::vector<std::vector<double>> > x;
                 std::vector<std::vector<double>> bet;
@@ -263,74 +271,74 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
 }
 
 // runs benchmark on a specific temporal graph with taylored cost functions using dijkstra algorithm
-BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
-{
+// BenchmarkResults runBenchmarks(const akt::Graph& g, BenchmarkSettings& bs)
+// {
 
-  BenchmarkResults res;
-  std::map<std::string,double> ti;
-  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
-  if (bs.numberNodes.size() == 0)
-    bs.numberNodes = "-1";
-  //  std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","active"}};
-    for (auto &st: cost_type)
-      {
-            std::vector<std::string> strict;
-            if(bs.runNonStrict == true)
-              strict.push_back("non-strict");
-            if(bs.runStrict == true)
-                strict.push_back("strict");
+//   BenchmarkResults res;
+//   std::map<std::string,double> ti;
+//   //std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","passive"}, {"shortest","active"}, {"shortestfastest","passive"} , {"shortestfastest","active"}, {"foremost","passive"} , {"shortestforemost","passive"}};
+//   if (bs.numberNodes.size() == 0)
+//     bs.numberNodes = "-1";
+//   std::vector<std::pair<std::string,std::string>> cost_type{{"shortest","active"}};
+//     for (auto &st: cost_type)
+//       {
+//             std::vector<std::string> strict;
+//             if(bs.runNonStrict == true)
+//               strict.push_back("non-strict");
+//             if(bs.runStrict == true)
+//                 strict.push_back("strict");
 
 
-            for (auto &stri: strict)
-              {
-                bool str_bool;
-                if (stri == "strict")
-                  str_bool = true;
-                else
-                  str_bool = false;
-                //std::clog << "Starting  " << st.first << " " << st.second << std::endl;
+//             for (auto &stri: strict)
+//               {
+//                 bool str_bool;
+//                 if (stri == "strict")
+//                   str_bool = true;
+//                 else
+//                   str_bool = false;
+//                 //std::clog << "Starting  " << st.first << " " << st.second << std::endl;
 
-                // if(stri == "false")
-                //   {
-                    std::cout << stri + "_"+st.first+"_"+st.second << "\n";
-                    auto start = std::chrono::high_resolution_clock::now();
-                    auto y = optimalBetweenness(g, str_bool, st.first, "le", st.second, stoi(bs.numberNodes));
-                    std::pair< std::vector<std::vector<double>>, std::vector<std::vector<double>> > x;
-                    std::vector<std::vector<double>> bet;
-                    std::vector<std::vector<double>> bet_ex;
-                    std::vector<double> bet_sum;
-                    std::tie (bet, bet_ex, bet_sum) = y;
-                    x.first = bet;
-                    x.second = bet_ex;
-                    auto end = std::chrono::high_resolution_clock::now();
-                    writeToFile(g, bs, stri+"_"+st.first+"_"+st.second+"_"+bs.numberNodes, x);
-                    std::cout << "end calcul "<< "\n" << std::flush;
-                    std::chrono::duration<double> time = end - start;
-                    res.optimalTime[stri + "_"+st.first+"_"+st.second] = time.count();
-                    std::cout << "time elapsed : "  << time.count() << "\n";
-                    if(bs.runTest && ((st.first == "shortest" && st.second== "passive")  || (st.first == "shortestforemost" && st.second== "passive")) ) 
-                      {
-                        std::cout << "START TEST \n";
-                        auto p = shortestBetweenness(g, str_bool);
-                        bool test;
-                        if (st.first == "shortest" && st.second== "passive")
-                          test = check(p.first, bet_sum);
-                        else
-                          test = check(p.second, bet_sum);
-                        if(!test)
-                          {
-                            std::cout << "probleme test";
-                            exit(-1);
-                          }
-                        else
-                          std::cout << "test OK! \n";
-                      }
-              }
+//                 // if(stri == "false")
+//                 //   {
+//                     std::cout << stri + "_"+st.first+"_"+st.second << "\n";
+//                     auto start = std::chrono::high_resolution_clock::now();
+//                     auto y = optimalBetweenness(g, str_bool, st.first, "le", st.second, stoi(bs.numberNodes));
+//                     std::pair< std::vector<std::vector<double>>, std::vector<std::vector<double>> > x;
+//                     std::vector<std::vector<double>> bet;
+//                     std::vector<std::vector<double>> bet_ex;
+//                     std::vector<double> bet_sum;
+//                     std::tie (bet, bet_ex, bet_sum) = y;
+//                     x.first = bet;
+//                     x.second = bet_ex;
+//                     auto end = std::chrono::high_resolution_clock::now();
+//                     writeToFile(g, bs, stri+"_"+st.first+"_"+st.second+"_"+bs.numberNodes, x);
+//                     std::cout << "end calcul "<< "\n" << std::flush;
+//                     std::chrono::duration<double> time = end - start;
+//                     res.optimalTime[stri + "_"+st.first+"_"+st.second] = time.count();
+//                     std::cout << "time elapsed : "  << time.count() << "\n";
+//                     if(bs.runTest && ((st.first == "shortest" && st.second== "passive")  || (st.first == "shortestforemost" && st.second== "passive")) ) 
+//                       {
+//                         std::cout << "START TEST \n";
+//                         auto p = shortestBetweenness(g, str_bool);
+//                         bool test;
+//                         if (st.first == "shortest" && st.second== "passive")
+//                           test = check(p.first, bet_sum);
+//                         else
+//                           test = check(p.second, bet_sum);
+//                         if(!test)
+//                           {
+//                             std::cout << "probleme test";
+//                             exit(-1);
+//                           }
+//                         else
+//                           std::cout << "test OK! \n";
+//                       }
+//               }
 
-      }
-    writeTime(g, bs, res.optimalTime);
-    return res;
-}
+//       }
+//     writeTime(g, bs, res.optimalTime);
+//     return res;
+// }
 
 auto readGraphFromFile(const BenchmarkSettings& bs)
 {
@@ -362,10 +370,7 @@ BenchmarkResults readGraphRunBenchmarks(BenchmarkSettings& bs)
     BenchmarkResults br;
     writeNodeIds(ids,bs);
     writeTimestamps(g.events,bs);
-    if(bs.runBoost)
-      br = runBenchmarksShort(g, bs);
-    else
-      br = runBenchmarks(g, bs);
+    br = runBenchmarksShort(g, bs);
     br.inputIds = std::move(ids);
     br.n = g.N();
 

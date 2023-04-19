@@ -347,44 +347,41 @@ for (int i = 0; i < sbd.cur_best.size(); i++)
 
 void optimal_initialization(const akt::Graph& g, int s, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), MinHeap &q, std::vector<long int> &visited)
 {
-  // for (int t = 0; t < g.events.size(); t++)
-  int T = g.events.size();    
-  // {
+  int T = g.events.size();
   for (int t = g.minimalTimestep(); (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[s][t].nextTimestep) {
 
     if (g.adjacencyList()[s][t].neighbours.size() > 0)
       {
-        //        std::cout<< "init opti " << s << " " << t << "\n";        
-
       Path* pp = new Path(nullptr, s, g.events[t]);
       sbd.opt_walk[s][t] = pp;
       sbd.cur_best[s][t] = cost(sbd.opt_walk[s][t], g.events[t], g);
       sbd.pre[s][t].insert(VertexAppearance{ s, -1 });
       //add to visited since not added to heap
       visited.push_back(s*T + t);
+      q.insertKey({ 0.0 , {s,t}  });
       }
     }
-  for (int t = g.minimalTimestep(); (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[s][t].nextTimestep) {
+  // for (int t = g.minimalTimestep(); (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[s][t].nextTimestep) {
 
-    for (auto w : g.adjacencyList()[s][t].neighbours) 
-      {
-        //      std:cout << "optimal initialize " << " w  " << w  << " t " << t << " \n" << std::flush;
-        Path* ppp = new Path(sbd.opt_walk[s][t], w, g.events[t]);
-        sbd.opt_walk[w][t] = ppp;
-        sbd.cur_best[w][t] = cost(sbd.opt_walk[w][t], g.events[t], g);
-        sbd.pre[w][t].insert(VertexAppearance{ s,  g.events[t]});
-        std::pair<int,int> p_tmp;
-        std::pair<double,std::pair<int,int>> p;
-        p_tmp.first = w;
-        p_tmp.second = t;
-        p.first = sbd.cur_best[w][t];
-        p.second = p_tmp;
-        q.insertKey(p);
-        sbd.optimalNode[s] = 0.0;
-        if (sbd.cur_best[w][t] < sbd.optimalNode[w])
-          sbd.optimalNode[w] = sbd.cur_best[w][t];
-      }
-  }
+  //   for (auto w : g.adjacencyList()[s][t].neighbours)
+  //     {
+  //       //      std:cout << "optimal initialize " << " w  " << w  << " t " << t << " \n" << std::flush;
+  //       Path* ppp = new Path(sbd.opt_walk[s][t], w, g.events[t]);
+  //       sbd.opt_walk[w][t] = ppp;
+  //       sbd.cur_best[w][t] = cost(sbd.opt_walk[w][t], g.events[t], g);
+  //       sbd.pre[w][t].insert(VertexAppearance{ s,  g.events[t]});
+  //       std::pair<int,int> p_tmp;
+  //       std::pair<double,std::pair<int,int>> p;
+  //       p_tmp.first = w;
+  //       p_tmp.second = t;
+  //       p.first = sbd.cur_best[w][t];
+  //       p.second = p_tmp;
+  //       q.insertKey(p);
+  //       sbd.optimalNode[s] = 0.0;
+  //       if (sbd.cur_best[w][t] < sbd.optimalNode[w])
+  //         sbd.optimalNode[w] = sbd.cur_best[w][t];
+  //     }
+  // }
 }
 
 void optimalInitializationBoost(const akt::Graph& g, int s, OptimalBetweennessData& sbd, std::queue<int> &q)
@@ -447,20 +444,6 @@ void relax_resting(int b, int t, int tp, OptimalBetweennessData& sbd, MinHeap &q
           }
 }
 
-// void relaxRestingBoost(int b, int t, int tp, OptimalBetweennessData& sbd, const akt::Graph& g,   std::vector<long int> &visited, int l)
-// {
-//   //    std::cout << b << " " << t << " : " << " " << tp << "\n";
-//   int T = g.events.size();
-//   if (sbd.cur_best[b][tp] > l+1)
-//     {
-//       visited.push_back(b*T + tp);
-//       sbd.pre[b][tp].clear();
-//       sbd.cur_best[b][tp] = l+1;
-//       sbd.sigma[b][tp] = 0;
-//       //      sbd.opt_walk[b][tp] = sbd.opt_walk[b][t];
-//       //      (*q).push_back(b*T + tp);
-//     }
-// }
 
 void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, MinHeap &q, bool (*cmp)(double, double),double (*cost)(Path*, int, const akt::Graph&), const akt::Graph& g)
 {
@@ -468,17 +451,11 @@ void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, MinHeap &q,
   if (sbd.pre[a][t].size() == 0)
     return;
   auto m = sbd.opt_walk[a][t];
-  //display(m);
   auto mp = new Path(m,b,g.events[tp]);
-  //display(mp);
-  //if (sbd.opt_walk[b][tp] != nullptr)
-  // display(sbd.opt_walk[b][tp]);
   auto cnew = cost(mp, g.events[tp], g);
   auto cold = cost(sbd.opt_walk[b][tp], g.events[tp], g);
-  //  printf("a %d t %d events [t] %d, cnew %lg cold %lg cost opt at %lg b %d tp %d events[tp] %d\n", a,t,g.events[t], cnew,cold,cost(sbd.opt_walk[a][t],g.events[t],g), b,tp,g.events[tp]);
-  if (cmp(cnew, cold))
-          {
-            //        std::cout << "a " << a << " b " <<  b << " t " << t << "\n";
+  if (cmp(cnew, cold)){
+    auto tmp = sbd.opt_walk[b][tp];
             sbd.pre[b][tp].clear();
             sbd.cur_best[b][tp] = cnew;
             sbd.opt_walk[b][tp] = mp;
@@ -494,16 +471,14 @@ void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, MinHeap &q,
             std::pair<double,std::pair<int,int>> p2;
             p2.first = cold;
             p2.second = p_tmp2;
-
             //printf("optimal\n");
-            if (q.index_elem.count(p2) == 1 )
-              {
+            if (q.index_elem.count(p2) == 1 ){
                 q.decreaseKey(q.index_elem[p2], p);
-                //std::cout << "DECREASE.................. \n"; 
+                display(tmp);
+                display(mp);
+                std::cout <<"old " << cold << " " << p  << "DECREASE.................. \n"; 
               }
-
-            else
-              {
+            else{
                 q.insertKey(p);
               }
             if (cnew < sbd.optimalNode[b])
@@ -512,36 +487,15 @@ void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, MinHeap &q,
   else
     delete mp;
   if (cnew == sbd.cur_best[b][tp] and cnew != std::numeric_limits<double>::infinity())
-    sbd.pre[b][tp].insert(VertexAppearance{a,t});
+    {
+      sbd.pre[b][tp].insert(VertexAppearance{a,t});
+      sbd.sigmadot[b][tp] += sbd.sigmadot[a][t];
+      if(cnew == sbd.optimalNode[b])
+        sbd.totalSigma[b] = sbd.totalSigma[b] + sbd.sigmadot[a][t];
+    }
   //printf("fin\n");
 
 }
-
-// void relaxBoost(int a, int b, int t, int tp, OptimalBetweennessData& sbd, std::vector<int>*q, const akt::Graph& g, int l, int strict, std::string& walk_type, std::vector<long int>& visited)
-// {
-//   int T = g.events.size();
-//   if (sbd.cur_best[b][tp] == std::numeric_limits<double>::infinity() || (sbd.cur_best[b][tp] >= l+1 && sbd.pre[b][tp].size() == 0) )
-//           {
-//             sbd.cur_best[b][tp] = l+1;
-//             if (l+1 < sbd.optimalNode[b])
-//               sbd.optimalNode[b] = l+1;
-
-//             (*q).push_back(b*T + tp);
-//             if (walk_type == "active")
-//               {
-//                 for (int tpp = tp + strict; (tpp >= 0) && (tpp <= g.maximalTimestep()); tpp = g.adjacencyList()[b][tpp].nextTimestep_inv) {
-//                   relaxRestingBoost(b,tp,tpp, sbd, g,visited,l);
-//                 }
-//               }
-//           }
-//   if (sbd.cur_best[b][tp] == l+1)
-//     {
-//       sbd.pre[b][tp].insert(VertexAppearance{a,t});
-//       sbd.sigma[b][tp] = sbd.sigma[b][tp] + sbd.sigma[a][t];
-//       if (l+1 == sbd.optimalNode[b])
-//         sbd.totalSigma[b] = sbd.totalSigma[b] + sbd.sigma[b][tp];
-//     }
-// }
 
 std::vector<long int>  optimalComputeDistancesSigmas(const akt::Graph& g, bool stri, int s, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), bool (*cmp)(double, double), std::string walk_type)
 {
@@ -553,7 +507,7 @@ std::vector<long int>  optimalComputeDistancesSigmas(const akt::Graph& g, bool s
   //printf("salut\n");
   std::vector<long int> visited;
   optimal_initialization(g, s, sbd, cost, q, visited);
-  //printf("normalement boucle après init %d,\n",q.heap_size);
+  printf("normalement boucle après init %d,\n",q.heap_size);
   int j = 0;
   while (q.heap_size > 0 ) {
     auto min_elem = q.extractMin();
@@ -562,29 +516,30 @@ std::vector<long int>  optimalComputeDistancesSigmas(const akt::Graph& g, bool s
     //    printf("vertex %d time %d\n",cur.v,cur.time);
     //printf("*************************************value %lg\n", min_elem.first);
     // Go over all neighbours of the current vertex appearance
-    for (int t = cur.time + strict; (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[cur.v][t].nextTimestep_inv) {
-      for (auto w : g.adjacencyList()[cur.v][t].neighbours_inv) {
-        if (walk_type == "active")
-          relax_resting(cur.v,cur.time,t, sbd, q, cmp, cost, g);
-    }
-
-    }
+    if(cur.v != s && walk_type == "active")
+      {
+        for (int t = cur.time + strict; (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[cur.v][t].nextTimestep_inv) {
+          for (auto w : g.adjacencyList()[cur.v][t].neighbours_inv) {
+              relax_resting(cur.v,cur.time,t, sbd, q, cmp, cost, g);
+          }
+        }
+      }
     for (int t = cur.time + strict; (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[cur.v][t].nextTimestep) {
       for (auto w : g.adjacencyList()[cur.v][t].neighbours) {
-        //should comment these 2 lines, not needed. Check for last security
-        // if (walk_type == "active")
-        //   relax_resting(cur.v, cur.time, t, sbd, q, cmp, cost, g);
-        //        printf("neigh v = %d, t = %d,  w = %d tp = %d\n", cur.v ,cur.time, w, t);
-        relax(cur.v,w,cur.time,t,sbd,q,cmp,cost,g);
+        if((! (cur.v == s && t != cur.time)) ){
+          if((cur.v == s || t >= (cur.time+strict)) ){
+            relax(cur.v,w,cur.time,t,sbd,q,cmp,cost,g);
+          }
         }
       }
     }
+  }
 
   q.deleteHeap();
   return visited;
 }
 
-void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, OptimalBetweennessData& sbd, std::string& walk_type, double k)
+void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, OptimalBetweennessData& sbd, std::string& walk_type, double k, int foremost)
 {
   int T = g.events.size();
   int strict = 0;
@@ -607,8 +562,20 @@ void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, O
             if((curv == s || t >= (curtime+strict)) && (g.events[t] - g.events[(curtime+strict)] <= k ) ){
                   if (sbd.cur_best[w][t] == std::numeric_limits<double>::infinity() || (sbd.cur_best[w][t] >= l+1 && sbd.pre[w][t].size() == 0) ){
                     sbd.cur_best[w][t] = l+1;
-                    if (l+1 < sbd.optimalNode[w])
-                      sbd.optimalNode[w] = l+1;
+                    if (!foremost)
+                      {
+                        if (l+1 < sbd.optimalNode[w])
+                          sbd.optimalNode[w] = l+1; 
+                      }
+                    else
+                      {
+                        if (t < sbd.optimalNode[w])
+                          {
+                            sbd.optimalNode[w] = t;
+                            sbd.totalSigma[w] = 0;
+                          }
+
+                      }
                     (*qp).push(w*T + t);
                     if (walk_type == "active")
                       {
@@ -624,8 +591,19 @@ void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, O
                   if (sbd.cur_best[w][t] == l+1){
                       sbd.pre[w][t].insert(VertexAppearance{curv,curtime});
                       sbd.sigmadot[w][t] = sbd.sigmadot[w][t] + sbd.sigmadot[curv][curtime];
-                      if (l+1 == sbd.optimalNode[w])
-                        sbd.totalSigma[w] = sbd.totalSigma[w] + sbd.sigmadot[curv][curtime];
+                      if(!foremost)
+                        {
+                          if (l+1 == sbd.optimalNode[w])
+                            sbd.totalSigma[w] = sbd.totalSigma[w] + sbd.sigmadot[curv][curtime];
+                        }
+                      else
+                        {
+                          if (t == sbd.optimalNode[w])
+                            {
+                              sbd.totalSigma[w] = sbd.totalSigma[w] + sbd.sigmadot[curv][curtime];
+                            }
+
+                        }
                   }
               }
           }
@@ -642,7 +620,7 @@ void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, O
 }
 
 // main algorithm for shortest paths variants on passive case
-void shortestEmptyStackUpdateBetweennessBoost(int s, OptimalBetweennessData& sbd, const akt::Graph& g)
+void shortestEmptyStackUpdateBetweennessBoost(int s, OptimalBetweennessData& sbd, const akt::Graph& g, int foremost)
 {
   int T = g.events.size();
   for (auto it = sbd.visited.rbegin(); it != sbd.visited.rend(); ++it){
@@ -652,9 +630,19 @@ void shortestEmptyStackUpdateBetweennessBoost(int s, OptimalBetweennessData& sbd
     auto curtime = tmp % T;
     //sbd.visited.pop_back();
     // Handle "base-cases," i.e. times where the appearance is the end of a shortest (foremost) path to the vertex in question
-    if (sbd.cur_best[curv][curtime] == sbd.optimalNode[curv])
-      sbd.deltadot[curv][curtime] += static_cast<double>(sbd.sigmadot[curv][curtime])
-        / static_cast<double>(sbd.totalSigma[curv]);
+    if(!foremost)
+      {
+        if (sbd.cur_best[curv][curtime] == sbd.optimalNode[curv])
+          sbd.deltadot[curv][curtime] += static_cast<double>(sbd.sigmadot[curv][curtime])
+            / static_cast<double>(sbd.totalSigma[curv]);
+      }
+    else
+      {
+        if (curtime == sbd.optimalNode[curv])
+          sbd.deltadot[curv][curtime] += static_cast<double>(sbd.sigmadot[curv][curtime])
+            / static_cast<double>(sbd.totalSigma[curv]);
+      }
+
     for (auto pred : sbd.pre[curv][curtime]) {
       if(pred.time != -1){
       // Compute the currently considered summand of the sum over successors of pred and update betweenness centrality and deltaDots
@@ -935,18 +923,21 @@ namespace akt {
     }
     totalBetweenness_compute(sbd, g.N(), g.events.size());
     //    std::cout << "end total_bet_comp "<< "\n" << std::flush;
-    //    display_tot(sbd);
+    //display_tot(sbd);
     return {sbd.betweenness , sbd.betweenness_exact, sbd.totalBetweenness};
 
   }
   // computes the betweenness centrality on shortest paths variants
  std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>> , std::vector<double> > optimalBetweennessBoost(const Graph& g, bool strict, std::string cost, std::string walk_type, int numberNodes)
   {
+    int foremost = 0;
     double k;
     if(cost == "shortest")
       k = std::numeric_limits<double>::infinity();
     else if(cost == "shortestrestless")
       k = (g.maxActualTime() - g.minActualTime()) * 10 / 100;
+    else if(cost == "shortestforemost")
+      foremost = 1;
     std::cout << "REST = " << k << " "<<g.minActualTime() << " "<< g.maxActualTime()<<  "\n";
     auto sbd = OptimalBetweennessData(g);
     // Stores the betweenness values; initialize to 1 because of the formula for betweenness having a constant +1
@@ -963,7 +954,7 @@ namespace akt {
             s = distrib(gen);
           sampled.insert(s);
         }
-      optimalComputeDistancesSigmasBoost(g, strict, s, sbd,  walk_type, k);
+      optimalComputeDistancesSigmasBoost(g, strict, s, sbd,  walk_type, k, foremost);
       std::vector<long int> vis2;
       if(walk_type == "active")
         {
@@ -973,7 +964,7 @@ namespace akt {
         }
       else
         {
-          shortestEmptyStackUpdateBetweennessBoost(s, sbd, g);
+          shortestEmptyStackUpdateBetweennessBoost(s, sbd, g, foremost);
           //display_tot(sbd);
           reinitializeHelperStructOptimalBoost(g, s, sbd);
           //display_tot(sbd);
