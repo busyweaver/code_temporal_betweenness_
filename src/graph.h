@@ -1,4 +1,6 @@
 #pragma once
+#include <unordered_set>
+#include <utility>
 
 #include <set>
 #include <string>
@@ -11,6 +13,11 @@
 // Possible modification: make a space-time trade-off and store the current edge of the iterator in Graph::EdgeConstIterator
 
 namespace akt {
+  struct pair_hash {
+    inline std::size_t operator()(const std::pair<int,int> & v) const {
+      return v.first*31+v.second;
+    }
+  };
 
     // Stores data about a temporal edge
     struct TemporalEdge
@@ -41,6 +48,7 @@ namespace akt {
         };
       std::vector<int> events;
       std::map<int, int> events_rev;
+      std::unordered_set<std::pair<int,int>,  pair_hash> edges_static;
 
         // Creates a graph with (initially) no edges, containing noNodes nodes and edges whose timestamps lie in [0, maximalTimestep]
         Graph(int noNodes, int maximalTimestep)
@@ -51,31 +59,6 @@ namespace akt {
       Graph(int noNodes, int maximalTimestep, const TemporalEdgeSet& tes, std::vector<int>& ev, std::map<int, int>& ev_rev)
             : Graph(noNodes, maximalTimestep)
         {
-          // printf("construction %ld\n",events_set->size());
-
-
-          // int min = *events_set->begin();
-          // int max = *events_set->rbegin();
-          // std::cout << "min " << min << " max " << max << " eps " << eps <<"\n";
-          // if (eps > 0)
-          //   {
-          //     int j = min;
-          //     while(j < max)
-          //       {
-          //         events_set->insert(j);
-          //         j = j + eps;
-          //       } 
-          //   }
-          // events.assign(events_set->begin(), events_set->end());
-          // std::sort(events.begin(), events.end());
-
-          // for (int i = 0; i < events.size(); i++)
-          //   events_rev[events[i]] = i;
-          // printf("events now \n");
-          // for (auto &it : events)
-          //   {
-          //     std::cout << "event " << it << "\n";
-          //   }
           events = ev;
           events_rev = ev_rev;
           edges = tes.size();
@@ -86,6 +69,10 @@ namespace akt {
 
             for (const auto& te : tes)
               adj[te.to][te.when].neighbours_inv.push_back(te.from);
+
+            for (const auto& te : tes)
+              edges_static.insert({te.from,te.to});
+
             // Compute the nextTimestep values for all nodes at all times
             for (int i = 0; i < noNodes; ++i) {
                 // Initialize lastNonEmpty to the last timestep where node i has some outgoing edges
@@ -150,6 +137,7 @@ namespace akt {
 
         // Returns the number of nodes in the graph
         int N() const { return nodes; }
+      int MS() const { return edges_static.size(); }
 
         // Returns the number of temporal edges in the graph
         int M() const { return edges; }
