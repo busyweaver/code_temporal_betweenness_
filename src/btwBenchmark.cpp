@@ -30,6 +30,7 @@ struct BenchmarkSettings
 {
   bool runStrict = false;
   std::string numberNodes;
+  std::string percentTime;
   bool runNonStrict = false;
   bool runBoost = false;
   bool edgesDirected = false;
@@ -56,7 +57,7 @@ void writeTime(const akt::Graph& g, BenchmarkSettings& bs, std::map<std::string,
   const char* str = path.c_str();
   mkdir(str,0777);
   std::ofstream file;
-  file.open (path+"/info"+"_"+bs.numberNodes+".txt");
+  file.open (path+"/info"+"_"+bs.numberNodes+"_"+bs.percentTime+".txt");
   file <<  "number nodes " << g.N() << "\n";
   file <<  "number events " << g.T() << "\n";
   if (bs.edgesDirected)
@@ -204,6 +205,8 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
 
   if (bs.numberNodes.size() == 0)
     bs.numberNodes = "-1";
+  if (bs.percentTime.size() == 0)
+    bs.percentTime = "-1";
     for (auto &st: cost_type){
             std::vector<std::string> strict;
             if(bs.runNonStrict == true)
@@ -221,7 +224,7 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
                 auto start = std::chrono::high_resolution_clock::now();
                 std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>> , std::vector<double> > y;
                 if(bs.runBoost)
-                  y = optimalBetweennessBoost(g, str_bool, st.first, st.second, stoi(bs.numberNodes));
+                  y = optimalBetweennessBoost(g, str_bool, st.first, st.second, stoi(bs.numberNodes), stoi(bs.percentTime));
                 else
                   y = optimalBetweenness(g, str_bool, st.first, "le", st.second, stoi(bs.numberNodes));
                 auto end = std::chrono::high_resolution_clock::now();
@@ -398,6 +401,7 @@ int main (int argc, char** argv)
 		("filename,f", po::value<std::string>(&(bs.filename)), "instead of reading the graph from stdin, use the file given in the argument")
     ("epsilon,e", po::value<std::string>(&(bs.epsilon)), "value for event time difference")
     ("numbernodes,a", po::value<std::string>(&(bs.numberNodes)), "number of nodes treated for heuristic")
+    ("percenttime,p", po::value<std::string>(&(bs.percentTime)), "percentage of time looking an integer")
     ("optimal,opt", po::value<std::string>(&(bs.optimal_cost)), "choose a cost function for the general model if not specified shortest paths are selected")
     ("graph-directed,d", "interpret the edges in the graph as directed edges")
 		("strict,s", "run the strict versions betweenness algorithm")

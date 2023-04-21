@@ -384,10 +384,10 @@ void optimal_initialization(const akt::Graph& g, int s, OptimalBetweennessData& 
   // }
 }
 
-void optimalInitializationBoost(const akt::Graph& g, int s, OptimalBetweennessData& sbd, std::queue<int> &q)
+void optimalInitializationBoost(const akt::Graph& g, int s, OptimalBetweennessData& sbd, std::queue<int> &q, double untilTime)
 {
   int T = g.events.size();
-  for (int t = g.minimalTimestep(); (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[s][t].nextTimestep) {
+  for (int t = g.minimalTimestep(); (t >= 0) && (t <= g.maximalTimestep()) && (t <= untilTime); t = g.adjacencyList()[s][t].nextTimestep) {
     if (g.adjacencyList()[s][t].neighbours.size() > 0)
       {
         //        Path* pp = new Path(nullptr, s, g.events[t]);
@@ -539,7 +539,7 @@ std::vector<long int>  optimalComputeDistancesSigmas(const akt::Graph& g, bool s
   return visited;
 }
 
-void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, OptimalBetweennessData& sbd, std::string& walk_type, double k, int foremost)
+void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, OptimalBetweennessData& sbd, std::string& walk_type, double k, int foremost, double untilTime)
 {
   int T = g.events.size();
   int strict = 0;
@@ -548,7 +548,7 @@ void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, O
   std::queue<int>* q = new queue<int>();
   std::queue<int>* qp = new queue<int>();
   int l = 0;
-  optimalInitializationBoost(g, s, sbd, *q);
+  optimalInitializationBoost(g, s, sbd, *q, untilTime);
   while ((*q).size() > 0 ) {
     while((*q).size() > 0){
       auto elem = (*q).front();
@@ -556,7 +556,7 @@ void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, O
       auto curv = elem / T;
       auto curtime = elem % T;
       sbd.visited.push_back(curv*T + curtime);
-      for (int t = curtime; (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[curv][t].nextTimestep) {
+      for (int t = curtime; (t >= 0) && (t <= g.maximalTimestep()) && (t <= untilTime); t = g.adjacencyList()[curv][t].nextTimestep) {
         for (auto w : g.adjacencyList()[curv][t].neighbours) {
           if((! (curv == s && t != curtime)) ){
             if((curv == s || t >= (curtime+strict)) && (g.events[t] - g.events[(curtime+strict)] <= k ) ){
@@ -579,7 +579,7 @@ void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, O
                     (*qp).push(w*T + t);
                     if (walk_type == "active")
                       {
-                        for (int tpp = t + strict; (tpp >= 0) && (tpp <= g.maximalTimestep()) && (g.events[tpp] - g.events[(t+strict)] <= k ); tpp = g.adjacencyList()[w][tpp].nextTimestep_inv) {
+                        for (int tpp = t + strict; (tpp >= 0) && (tpp <= g.maximalTimestep()) && (g.events[tpp] - g.events[(t+strict)] <= k ) && (tpp <= untilTime); tpp = g.adjacencyList()[w][tpp].nextTimestep_inv) {
                           if (sbd.cur_best[w][tpp] > l+1){
                             sbd.visited.push_back(w*T + tpp);
                             //sbd.pre[w][tpp].clear();
@@ -928,8 +928,14 @@ namespace akt {
 
   }
   // computes the betweenness centrality on shortest paths variants
- std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>> , std::vector<double> > optimalBetweennessBoost(const Graph& g, bool strict, std::string cost, std::string walk_type, int numberNodes)
+  std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>> , std::vector<double> > optimalBetweennessBoost(const Graph& g, bool strict, std::string cost, std::string walk_type, int numberNodes, int percentTime)
   {
+    double untilTime;
+    if(percentTime == -1)
+      untilTime = std::numeric_limits<double>::infinity();
+    else
+      untilTime = g.minActualTime() + ((g.maxActualTime() - g.minActualTime())*percentTime)/100.0;
+    std::cout << "looking until " << untilTime << " start time " << g.minActualTime() << " end time "<< g.maxActualTime()<<  "\n";
     int foremost = 0;
     double k;
     if(cost == "shortest")
@@ -954,7 +960,7 @@ namespace akt {
             s = distrib(gen);
           sampled.insert(s);
         }
-      optimalComputeDistancesSigmasBoost(g, strict, s, sbd,  walk_type, k, foremost);
+      optimalComputeDistancesSigmasBoost(g, strict, s, sbd,  walk_type, k, foremost, untilTime);
       std::vector<long int> vis2;
       if(walk_type == "active")
         {
@@ -973,7 +979,7 @@ namespace akt {
       i++;
     }
     totalBetweenness_compute(sbd, g.N(), g.events.size());
-    //    display_tot(sbd);
+    //display_tot(sbd);
     return {sbd.betweenness , sbd.betweenness_exact, sbd.totalBetweenness};
   }
 
