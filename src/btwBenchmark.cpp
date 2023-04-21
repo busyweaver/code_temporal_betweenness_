@@ -235,7 +235,7 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
                 std::tie (bet, bet_ex, bet_sum) = y;
                 x.first = bet;
                 x.second = bet_ex;
-                writeToFile(g, bs, stri+"_"+st.first+"_"+st.second+"_"+bs.numberNodes, x);
+                writeToFile(g, bs, stri+"_"+st.first+"_"+st.second+"_"+bs.numberNodes+"_"+bs.percentTime, x);
                 std::cout << "end calcul "<< "\n" << std::flush;
                 std::chrono::duration<double> time = end - start;
                 res.optimalTime[stri+"_"+st.first+"_"+st.second] = time.count();
