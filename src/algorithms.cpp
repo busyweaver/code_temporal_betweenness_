@@ -387,7 +387,7 @@ void optimal_initialization(const akt::Graph& g, int s, OptimalBetweennessData& 
 void optimalInitializationBoost(const akt::Graph& g, int s, OptimalBetweennessData& sbd, std::queue<int> &q, double untilTime)
 {
   int T = g.events.size();
-  for (int t = g.minimalTimestep(); (t >= 0) && (t <= g.maximalTimestep()) && (t <= untilTime); t = g.adjacencyList()[s][t].nextTimestep) {
+  for (int t = g.minimalTimestep(); (t >= 0) && (t <= g.maximalTimestep()) && (g.events[t] <= untilTime); t = g.adjacencyList()[s][t].nextTimestep) {
     if (g.adjacencyList()[s][t].neighbours.size() > 0)
       {
         //        Path* pp = new Path(nullptr, s, g.events[t]);
@@ -556,7 +556,7 @@ void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, O
       auto curv = elem / T;
       auto curtime = elem % T;
       sbd.visited.push_back(curv*T + curtime);
-      for (int t = curtime; (t >= 0) && (t <= g.maximalTimestep()) && (t <= untilTime); t = g.adjacencyList()[curv][t].nextTimestep) {
+      for (int t = curtime; (t >= 0) && (t <= g.maximalTimestep()) && (g.events[t] <= untilTime); t = g.adjacencyList()[curv][t].nextTimestep) {
         for (auto w : g.adjacencyList()[curv][t].neighbours) {
           if((! (curv == s && t != curtime)) ){
             if((curv == s || t >= (curtime+strict)) && (g.events[t] - g.events[(curtime+strict)] <= k ) ){
@@ -579,7 +579,7 @@ void optimalComputeDistancesSigmasBoost(const akt::Graph& g, bool stri, int s, O
                     (*qp).push(w*T + t);
                     if (walk_type == "active")
                       {
-                        for (int tpp = t + strict; (tpp >= 0) && (tpp <= g.maximalTimestep()) && (g.events[tpp] - g.events[(t+strict)] <= k ) && (tpp <= untilTime); tpp = g.adjacencyList()[w][tpp].nextTimestep_inv) {
+                        for (int tpp = t + strict; (tpp >= 0) && (tpp <= g.maximalTimestep()) && (g.events[tpp] - g.events[(t+strict)] <= k ) && (g.events[tpp] <= untilTime); tpp = g.adjacencyList()[w][tpp].nextTimestep_inv) {
                           if (sbd.cur_best[w][tpp] > l+1){
                             sbd.visited.push_back(w*T + tpp);
                             //sbd.pre[w][tpp].clear();
