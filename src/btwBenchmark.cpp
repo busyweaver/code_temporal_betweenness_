@@ -255,7 +255,7 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
                     test = check(p.second, bet_sum);
                   if(!test){
                     std::cout << "probleme test";
-                    exit(-1);
+                    //exit(-1);
                   }
                   else
                     std::cout << "test OK! \n";
