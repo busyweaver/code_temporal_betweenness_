@@ -30,6 +30,8 @@ struct BenchmarkSettings
 {
   bool runStrict = false;
   std::string numberNodes;
+  std::string cost = "";
+  std::string type = "";
   std::string percentTime;
   bool runNonStrict = false;
   bool runBoost = false;
@@ -198,10 +200,14 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
   BenchmarkResults res;
   std::map<std::string,double> ti;
   std::vector<std::pair<std::string,std::string>> cost_type;
-  if(bs.runBoost)
+  if(bs.cost == "")
     cost_type = {{"shortestrestless","passive"},{"shortestrestless","active"}, {"shortest","passive"},{"shortest","active"}, {"shortestforemost","passive"}};
   else
-    cost_type = {{"shortestforemost","passive"}};
+    {
+      std::cout << bs.cost << bs.type << "yes\n";
+      cost_type = {{bs.cost,bs.type}};
+    }
+
 
   if (bs.numberNodes.size() == 0)
     bs.numberNodes = "-1";
@@ -406,6 +412,8 @@ int main (int argc, char** argv)
     ("graph-directed,d", "interpret the edges in the graph as directed edges")
 		("strict,s", "run the strict versions betweenness algorithm")
     ("boost,b", "run the accelerated version of shortest")
+    ("cost,c", po::value<std::string>(&(bs.cost)),  "Cost function")
+    ("type,y",po::value<std::string>(&(bs.type)), "type active/passive")
     //    ("all,a", "run the active version on all temporal nodes, if not set run it only on vertex appearances")
 		("non-strict,n", "run the non-strict versions betweenness algorithm");
   po::variables_map vm;
