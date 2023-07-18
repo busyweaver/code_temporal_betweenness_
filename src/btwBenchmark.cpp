@@ -46,7 +46,7 @@ struct BenchmarkSettings
 };
 
 // write execution times into a file
-void writeTime(const akt::Graph& g, BenchmarkSettings& bs, std::map<std::string,double> ti)
+void writeTime(const akt::Graph& g, BenchmarkSettings& bs, std::map<std::string,double> ti, std::string s)
 {
   std::cout << "write time start "<< "\n" << std::flush;
   std::string path;
@@ -59,7 +59,7 @@ void writeTime(const akt::Graph& g, BenchmarkSettings& bs, std::map<std::string,
   const char* str = path.c_str();
   mkdir(str,0777);
   std::ofstream file;
-  file.open (path+"/info"+"_"+bs.numberNodes+"_"+bs.percentTime+".txt");
+  file.open (path+"/info"+"_"+s+".txt");
   file <<  "number nodes " << g.N() << "\n";
   file <<  "number events " << g.T() << "\n";
   if (bs.edgesDirected)
@@ -271,7 +271,7 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
                 time = end - start;
                 res.optimalTime["static_betweenness"] = time.count();
                 writeStaticBet(p, bs);
-                writeTime(g, bs, res.optimalTime);
+                writeTime(g, bs, res.optimalTime, stri+"_"+st.first+"_"+st.second+"_"+bs.numberNodes+"_"+bs.percentTime);
               }
     }
 
