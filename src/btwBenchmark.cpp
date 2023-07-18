@@ -204,7 +204,6 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
     cost_type = {{"shortestrestless","passive"},{"shortestrestless","active"}, {"shortest","passive"},{"shortest","active"}, {"shortestforemost","passive"}};
   else
     {
-      std::cout << bs.cost << bs.type << "yes\n";
       cost_type = {{bs.cost,bs.type}};
     }
 
