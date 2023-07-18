@@ -8,7 +8,7 @@ replace in src/cmake/libs.cmake the link https://dl.bintray.com/boostorg/release
 ### If installed globally
 Need to add the path to libnetworkit.so to LD_LIBRARY_PATH
 ### If installed Locally
-Add networkit library to C_INCLUDE_PATH and CPLUS_INCLUDE_PATH I also had to compile (with cmake and then make) ttmath and tlx manually (they are in networkit folder) and add their path C_INCLUDE_PATH and CPLUS_INCLUDE_PATH.
+Add networkit library to C_INCLUDE_PATH and CPLUS_INCLUDE_PATH I also had to compile (with cmake and then make) ttmath and tlx manually (they are in networkit folder) and add their path C_INCLUDE_PATH and CPLUS_INCLUDE_PATH and remember to export these environment variables.
 Also need to add the path to libnetworkit.so to LD_LIBRARY_PATH
 Finally, in CMakeLists.txt comment the line of options and uncomment the previous one 
 
