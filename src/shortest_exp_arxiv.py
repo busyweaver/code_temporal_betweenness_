@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[146]:
+# In[155]:
 
 
 cost_type = [["shortest","passive"], ["shortest","active"],["shortestrestless","passive"], ["shortestrestless","active"],["shortestforemost","passive"]]
@@ -18,7 +18,7 @@ app = [-1]
 percent = [10,20,30,40,50,60,70,80,90,-1]
 
 
-# In[147]:
+# In[156]:
 
 
 def charact(path,st,cost_type,percent):
@@ -40,12 +40,16 @@ def charact(path,st,cost_type,percent):
     return (n,T,m,sm, str(res[-1])[:6])
 
 
-# In[148]:
+# In[159]:
 
 
 def info_time(path,st,cost_type,percent,ff):
-    f = open(path+"info_"+ st + "_" + cost_type[0] + "_" + cost_type[1] + "_" + "-1_" +str(percent)+".txt", "r")
-#     print(nam,end='')
+    try:
+        f = open(path+"info_"+ st + "_" + cost_type[0] + "_" + cost_type[1] + "_" + "-1_" +str(percent)+".txt", "r")
+    except IOError:
+        ff.write('& $-1$ ')
+        return
+    
     i = 0
     bob = True
     for x in f:
@@ -82,7 +86,7 @@ for i in range(len(names)):
 ff.close()
 
 
-# In[149]:
+# In[160]:
 
 
 def bet_statique(path):
@@ -98,7 +102,7 @@ def bet_statique(path):
     return bet_stat
 
 
-# In[150]:
+# In[171]:
 
 
 def res_dic(path, be,stri,cost_type,app,T,precenttime):
@@ -112,107 +116,124 @@ def res_dic(path, be,stri,cost_type,app,T,precenttime):
             for co in cost_type:
                 for ap in app:
                     for per in precenttime:
-                    #print(path+b+"_"+st+"_"+co[0]+"_"+co[1]+"_"+str(ap)+".txt")
-                        f = open(path+b+"_"+st+"_"+co[0]+"_"+co[1]+"_"+str(ap)+"_"+str(per)+".txt", "r")
-                        if ap not in res:
-                            res[ap] = dict()
-                        if ap not in res_bet:
-                            res_bet[ap] = dict()
-                        if ap not in res_sum_node:
-                            res_sum_node[ap] = dict()
-                        if ap not in res_sum_time:
-                            res_sum_time[ap] = dict()
-                            
-                        if per not in res[ap]:
-                            res[ap][per] = dict()
-                        if per not in res_bet[ap]:
-                            res_bet[ap][per] = dict()
-                        if per not in res_sum_node[ap]:
-                            res_sum_node[ap][per] = dict()
-                        if per not in res_sum_time[ap]:
-                            res_sum_time[ap][per] = dict()
+                        try:
+                            f = open(path+b+"_"+st+"_"+co[0]+"_"+co[1]+"_"+str(ap)+"_"+str(per)+".txt", "r")
+                            if ap not in res:
+                                res[ap] = dict()
+                            if ap not in res_bet:
+                                res_bet[ap] = dict()
+                            if ap not in res_sum_node:
+                                res_sum_node[ap] = dict()
+                            if ap not in res_sum_time:
+                                res_sum_time[ap] = dict()
 
-                        if st not in res[ap][per]:
-                            res[ap][per][st] = dict()
-                        if st not in res_bet[ap][per]:
-                            res_bet[ap][per][st] = dict()
-                        if st not in res_sum_node[ap][per]:
-                            res_sum_node[ap][per][st] = dict()
-                        if st not in res_sum_time[ap][per]:
-                            res_sum_time[ap][per][st] = dict()
+                            if per not in res[ap]:
+                                res[ap][per] = dict()
+                            if per not in res_bet[ap]:
+                                res_bet[ap][per] = dict()
+                            if per not in res_sum_node[ap]:
+                                res_sum_node[ap][per] = dict()
+                            if per not in res_sum_time[ap]:
+                                res_sum_time[ap][per] = dict()
 
-                        if b not in res_bet[ap][per][st]:
-                            res_bet[ap][per][st][b] = dict()
-                        res_bet[ap][per][st][b][co[0]+"_"+co[1]] = []
+                            if st not in res[ap][per]:
+                                res[ap][per][st] = dict()
+                            if st not in res_bet[ap][per]:
+                                res_bet[ap][per][st] = dict()
+                            if st not in res_sum_node[ap][per]:
+                                res_sum_node[ap][per][st] = dict()
+                            if st not in res_sum_time[ap][per]:
+                                res_sum_time[ap][per][st] = dict()
 
-                        if b not in res[ap][per][st]:
-                            res[ap][per][st][b] = dict()
+                            if b not in res_bet[ap][per][st]:
+                                res_bet[ap][per][st][b] = dict()
+                            res_bet[ap][per][st][b][co[0]+"_"+co[1]] = []
 
-                        if b not in res_sum_node[ap][per][st]:
-                            res_sum_node[ap][per][st][b] = dict()
-                        if b not in res_sum_time[ap][per][st]:
-                            res_sum_time[ap][per][st][b] = dict()
+                            if b not in res[ap][per][st]:
+                                res[ap][per][st][b] = dict()
 
-                        if co[1] not in res[ap][per][st][b]:
-                            res[ap][per][st][b][co[1]] = dict()
-                        if co[1] not in res_sum_node[ap][per][st][b]:
-                            res_sum_node[ap][per][st][b][co[1]] = dict()
-                        if co[1] not in res_sum_time[ap][per][st][b]:
-                            res_sum_time[ap][per][st][b][co[1]] = dict()
+                            if b not in res_sum_node[ap][per][st]:
+                                res_sum_node[ap][per][st][b] = dict()
+                            if b not in res_sum_time[ap][per][st]:
+                                res_sum_time[ap][per][st][b] = dict()
 
-                        res[ap][per][st][b][co[1]][co[0]] = []
+                            if co[1] not in res[ap][per][st][b]:
+                                res[ap][per][st][b][co[1]] = dict()
+                            if co[1] not in res_sum_node[ap][per][st][b]:
+                                res_sum_node[ap][per][st][b][co[1]] = dict()
+                            if co[1] not in res_sum_time[ap][per][st][b]:
+                                res_sum_time[ap][per][st][b][co[1]] = dict()
 
-                        res_sum_time[ap][per][st][b][co[1]][co[0]] = [0 for i in range(T)]
-                        res_sum_node[ap][per][st][b][co[1]][co[0]] = [0 for i in range(n)]
+                            res[ap][per][st][b][co[1]][co[0]] = []
+
+                            res_sum_time[ap][per][st][b][co[1]][co[0]] = [0 for i in range(T)]
+                            res_sum_node[ap][per][st][b][co[1]][co[0]] = [0 for i in range(n)]
 
 
 
-                        i = 0
-                        for x in f:
-                            res_sum_node[ap][per][st][b][co[1]][co[0]][i//T] +=  float(x)
-                            res_sum_time[ap][per][st][b][co[1]][co[0]][i%T] += float(x)
-#                             res[ap][per][st][b][co[1]][co[0]].append(float(x))
-#                             res_bet[ap][per][st][b][co[0]+"_"+co[1]].append(float(x))
-                            i += 1
+                            i = 0
+                            for x in f:
+                                res_sum_node[ap][per][st][b][co[1]][co[0]][i//T] +=  float(x)
+                                res_sum_time[ap][per][st][b][co[1]][co[0]][i%T] += float(x)
+    #                             res[ap][per][st][b][co[1]][co[0]].append(float(x))
+    #                             res_bet[ap][per][st][b][co[0]+"_"+co[1]].append(float(x))
+                                i += 1
+                        except IOError:
+                            print('not found')
     return (res_sum_node,res_sum_time)
 
 
-# In[151]:
+# In[191]:
 
 
 import scipy.stats as stats
 import matplotlib.pyplot as plt
+
+def check(res,i,j,stri,cost0,cost1):
+    if (i in res and j in res[i] and stri in res[i][j] and "bet_exact" in res[i][j][stri] and cost1 in res[i][j][stri]["bet_exact"] and cost0 in res[i][j][stri]["bet_exact"][cost1]):
+        return True
+    else:
+        return False
+    
+
 def inter_10(res_sum_node,per,co):
     res = []
     for j in per:
-        r = zip(res_sum_node[-1][-1]["non-strict"]["bet_exact"][co[1]][co[0]], [i for i in range(len(res_sum_node[-1][-1]["non-strict"]["bet_exact"][co[1]][co[0]]))])
-        r2 = zip(res_sum_node[-1][j]["non-strict"]["bet_exact"][co[1]][co[0]], [i for i in range(len(res_sum_node[-1][j]["non-strict"]["bet_exact"][co[1]][co[0]]))])
+        if check(res_sum_node,-1,-1,"non-strict",co[0],co[1]) and check(res_sum_node,-1,j,"non-strict",co[0],co[1]):
+            r = zip(res_sum_node[-1][-1]["non-strict"]["bet_exact"][co[1]][co[0]], [i for i in range(len(res_sum_node[-1][-1]["non-strict"]["bet_exact"][co[1]][co[0]]))])
+            r2 = zip(res_sum_node[-1][j]["non-strict"]["bet_exact"][co[1]][co[0]], [i for i in range(len(res_sum_node[-1][j]["non-strict"]["bet_exact"][co[1]][co[0]]))])
 
-        l = list(r)
-        l2 = list(r2)
+            l = list(r)
+            l2 = list(r2)
 
-        l.sort(reverse=True)
-        l2.sort(reverse=True)
-                
-        nb = 10
-        s = set(list(map(lambda x : x[1] ,l[:nb])))
-        s2 = set(list(map(lambda x : x[1] ,l2[:nb])))
-        res.append(len(s.intersection(s2))/nb  )
+            l.sort(reverse=True)
+            l2.sort(reverse=True)
+
+            nb = 10
+            s = set(list(map(lambda x : x[1] ,l[:nb])))
+            s2 = set(list(map(lambda x : x[1] ,l2[:nb])))
+            res.append(len(s.intersection(s2))/nb  )
+#         else:
+#             res.append(-1)
     return res
     
 
 def kendallrankTime(res_sum_node,per,co):
     res = []
-    for i in per:
+    for j in per:
+        if (-1 in res_sum_node and -1 in res_sum_node[-1] and "non-strict" in res_sum_node[-1][-1] and "bet_exact" in res_sum_node[-1][-1]["non-strict"] and co[1] in res_sum_node[-1][-1]["non-strict"]["bet_exact"] and co[0] in res_sum_node[-1][-1]["non-strict"]["bet_exact"][co[1]]) and  (-1 in res_sum_node and j in res_sum_node[-1] and "non-strict" in res_sum_node[-1][j] and "bet_exact" in res_sum_node[-1][j]["non-strict"] and co[1] in res_sum_node[-1][j]["non-strict"]["bet_exact"] and co[0] in res_sum_node[-1][j]["non-strict"]["bet_exact"][co[1]]):
 #         print("i",i)
 #         print(co)
 #         print(res_sum_node[-1][-1]["non-strict"]["bet_exact"][co[1]].keys(),res_sum_node[-1][i]["non-strict"]["bet_exact"][co[1]].keys())
-        tau, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"][co[1]][co[0]], res_sum_node[-1][i]["non-strict"]["bet_exact"][co[1]][co[0]])
-        res.append(tau)
+            tau, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"][co[1]][co[0]], res_sum_node[-1][j]["non-strict"]["bet_exact"][co[1]][co[0]])
+            res.append(tau)
+#         else:
+#             res.append(-2)
+        
     return res
 
 
-# In[152]:
+# In[192]:
 
 
 cor = []
@@ -239,7 +260,13 @@ for i in range(len(names)):
     cor2.append(res2)
 
 
-# In[153]:
+# In[193]:
+
+
+len(cor[0])
+
+
+# In[194]:
 
 
 from matplotlib.pyplot import figure
@@ -248,7 +275,7 @@ import matplotlib.pyplot as plt
 fig, axs = plt.subplots(len(cost_type), len(names))
 for i in range(len(names)):
     for j in range(len(cost_type)):
-        axs[j, i].plot([0,10,20,30,40,50,60,70,80,90,100],cor[i][j], alpha=0.5, color = names[i][2])
+        axs[j, i].plot([0 + 10*ii for ii in range(len(cor[i][j]))],cor[i][j], alpha=0.5, color = names[i][2])
         if j == 0 and i == 0:
             axs[j,i].set(xlabel='', title=names_cut[i],ylabel = cost_type_cut[j][0]+"_"+cost_type_cut[j][1])
         elif j == 0 and i != 0:
@@ -267,7 +294,7 @@ fig.savefig("pred_time.png")
 fig.show()
 
 
-# In[154]:
+# In[195]:
 
 
 from matplotlib.pyplot import figure
@@ -276,7 +303,7 @@ import matplotlib.pyplot as plt
 fig, axs = plt.subplots(len(cost_type), len(names))
 for i in range(len(names)):
     for j in range(len(cost_type)):
-        axs[j, i].plot([0,10,20,30,40,50,60,70,80,90,100],cor2[i][j], alpha=0.5, color = names[i][2])
+        axs[j, i].plot([0 + 10*ii for ii in range(len(cor[i][j]))],cor2[i][j], alpha=0.5, color = names[i][2])
         if j == 0 and i == 0:
             axs[j,i].set(xlabel='', title=names_cut[i],ylabel = cost_type_cut[j][0]+"_"+cost_type_cut[j][1])
         elif j == 0 and i != 0:
@@ -301,18 +328,37 @@ fig.show()
 
 
 
-# In[112]:
+# In[214]:
 
 
 import scipy.stats as stats
+import numpy as np
+
 import matplotlib.pyplot as plt
 def max_int(res_sum_node,bet_stat):
-    r = zip(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortest"], [i for i in range(len(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortest"]))])
-    r2 = zip(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortest"], [i for i in range(len(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortest"]))])
+    if check(res_sum_node,-1,-1,"non-strict","shortest","active"):
+        r = zip(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortest"], [i for i in range(len(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortest"]))])
+    else:
+        r = []
+    if check(res_sum_node,-1,-1,"non-strict","shortest","passive"):
+        r2 = zip(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortest"], [i for i in range(len(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortest"]))])
+    else:
+        r2 = []
+    
     r3 = zip(bet_stat, [i for i in range(len(bet_stat))])
-    r4 = zip(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortestrestless"], [i for i in range(len(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortestrestless"]))])
-    r5 = zip(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortestrestless"], [i for i in range(len(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortestrestless"]))])
-    r6 = zip(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortestforemost"], [i for i in range(len(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortestforemost"]))])
+    
+    if check(res_sum_node,-1,-1,"non-strict","shortestrestless","passive"):
+        r4 = zip(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortestrestless"], [i for i in range(len(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortestrestless"]))])
+    else:
+        r4 = []
+    if check(res_sum_node,-1,-1,"non-strict","shortestrestless","active"):
+        r5 = zip(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortestrestless"], [i for i in range(len(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortestrestless"]))])
+    else:
+        r5 = []
+    if check(res_sum_node,-1,-1,"non-strict","shortestforemost","passive"):
+        r6 = zip(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortestforemost"], [i for i in range(len(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortestforemost"]))])
+    else:
+        r6 = []
 
     l = list(r)
     l2 = list(r2)
@@ -335,22 +381,68 @@ def max_int(res_sum_node,bet_stat):
     s4 = set(list(map(lambda x : x[1] ,l4[:nb])))
     s5 = set(list(map(lambda x : x[1] ,l5[:nb])))
     s6 = set(list(map(lambda x : x[1] ,l6[:nb])))
+    
+    res = []
+    if (len(s) == 0 or len(s5) == 0):
+        res.append(np.nan)
+    else:
+        res.append(len(s5.intersection(s))/nb)
+    if (len(s4) == 0 or len(s2) == 0):
+        res.append(np.nan)
+    else:
+        res.append(len(s4.intersection(s2))/nb)
+    if (len(s) == 0 or len(s2) == 0):
+        res.append(np.nan)
+    else:
+        res.append(len(s2.intersection(s))/nb)
+    if (len(s) == 0 or len(s3) == 0):
+        res.append(np.nan)
+    else:
+        res.append(len(s3.intersection(s))/nb)
+    if (len(s2) == 0 or len(s3) == 0):
+        res.append(np.nan)
+    else:
+        res.append(len(s2.intersection(s3))/nb)
+    if (len(s6) == 0 or len(s3) == 0):
+        res.append(np.nan)
+    else:
+        res.append(len(s6.intersection(s3))/nb)
 
-    return [len(s5.intersection(s))/nb, len(s4.intersection(s2))/nb, len(s.intersection(s2))/nb, len(s.intersection(s3))/nb, len(s2.intersection(s3))/nb, len(s6.intersection(s3))/nb]
+    return res
 def kendallrank(res_sum_node,bet_stat):
-    tau1, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortestrestless"], res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortest"])
-    tau2, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortestrestless"], res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortest"])
-    tau3, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortestrestless"], bet_stat)
+    if check(res_sum_node,-1,-1,"non-strict","shortestrestless","active") and check(res_sum_node,-1,-1,"non-strict","shortest","active"):
+        tau1, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortestrestless"], res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortest"])
+    else:
+        tau1 = np.nan
+    if check(res_sum_node,-1,-1,"non-strict","shortestrestless","passive") and check(res_sum_node,-1,-1,"non-strict","shortest","passive"):
+        tau2, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortestrestless"], res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortest"])
+    else:
+        tau2 = np.nan
+        
+    if check(res_sum_node,-1,-1,"non-strict","shortestrestless","passive"):
+        tau3, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortestrestless"], bet_stat)
 
-    tau4, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortest"], res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortest"])
-    tau5, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortest"], bet_stat)
-    tau6, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortest"], bet_stat)
-    tau7, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortestforemost"], bet_stat)
+    if check(res_sum_node,-1,-1,"non-strict","shortest","active") and check(res_sum_node,-1,-1,"non-strict","shortest","passive"):
+        tau4, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortest"], res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortest"])
+    else:
+        tau4 = np.nan
+    if check(res_sum_node,-1,-1,"non-strict","shortest","active"):
+        tau5, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["active"]["shortest"], bet_stat)
+    else:
+        tau5 = np.nan
+    if check(res_sum_node,-1,-1,"non-strict","shortest","passive"):
+        tau6, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortest"], bet_stat)
+    else:
+        tau6 = np.nan
+    if check(res_sum_node,-1,-1,"non-strict","shortestforemost","passive"):
+        tau7, p_value = stats.kendalltau(res_sum_node[-1][-1]["non-strict"]["bet_exact"]["passive"]["shortestforemost"], bet_stat)
+    else:
+        tau7 = np.nan
 
     return [tau1, tau2, tau4, tau5, tau6, tau7]
 
 
-# In[145]:
+# In[215]:
 
 
 cor = []
@@ -372,11 +464,10 @@ for i in range(len(names)):
     maxx.append(l)
 
 
-# In[115]:
+# In[216]:
 
 
 bet_comp = [ "sh-rl_act/act ","sh-rl_pas/pas", "act/pas", "act/stat", "pas/stat","sh-fm/stat"]
-import numpy as np
 import seaborn as sns
 import pandas as pd
 from pylab import savefig
@@ -401,7 +492,7 @@ figure.savefig('heat_short_node.png', dpi=400,bbox_inches='tight')
 figure.tight_layout()
 
 
-# In[116]:
+# In[217]:
 
 
 import numpy as np
@@ -429,7 +520,7 @@ figure.savefig('heat_short_node_inter.png', dpi=400,bbox_inches='tight')
 figure.tight_layout()
 
 
-# In[117]:
+# In[219]:
 
 
 time = []
@@ -444,10 +535,13 @@ for i in range(len(names)):
     res_sum_node,res_sum_time = res_dic(path_db,be,stri,cost_type,app,T,percent)
     time.append([])
     for j in range(len(cost_type)):
-        time[i].append(res_sum_time[-1][-1]["non-strict"]["bet_exact"][cost_type[j][1]][cost_type[j][0]])
+        if check(res_sum_node,-1,-1,"non-strict",cost_type[j][0],cost_type[j][1]):
+            time[i].append(res_sum_time[-1][-1]["non-strict"]["bet_exact"][cost_type[j][1]][cost_type[j][0]])
+        else:
+            time[i].append([])
 
 
-# In[127]:
+# In[225]:
 
 
 from matplotlib.pyplot import figure
@@ -458,14 +552,18 @@ fig, axs = plt.subplots(len(cost_type), len(names))
 for i in range(len(names)):
     for j in range(len(cost_type)):
         ti = time[i][j]
-        s = list(map(lambda x : x/1, ti ))
-        t = [jj for jj in range(len(ti))]
-        nb = 20
-        ba_val = []
-        su = sum(ti)
-        bins = np.arange(0, len(ti), len(ti)/(nb+1)) # fixed bin size
-        for jj in range(len(list(bins))-1):
-            ba_val.append(sum(ti[int(bins[jj]):int(bins[jj+1])]))
+        if len(ti) != 0:
+            s = list(map(lambda x : x/1, ti ))
+            t = [jj for jj in range(len(ti))]
+            nb = 20
+            ba_val = []
+            su = sum(ti)
+            bins = np.arange(0, len(ti), len(ti)/(nb+1)) # fixed bin size
+            for jj in range(len(list(bins))-1):
+                ba_val.append(sum(ti[int(bins[jj]):int(bins[jj+1])]))
+        else:
+            ba_val = [0 for jj in range(len(list(bins))-1)]
+            
             
         
         axs[j, i].bar([jj for jj in range(len(ba_val))],ba_val, alpha=0.5, color = colors[j])
@@ -489,6 +587,12 @@ for i in range(len(names)):
 fig.set_size_inches(12, 5)
 fig.savefig("short_time.png")
 fig.show()
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
