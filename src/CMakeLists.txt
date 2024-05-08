@@ -13,7 +13,7 @@ install_boost(gcc program_options)
 
 add_executable(btwBenchmark
 	btwBenchmark.cpp
-	algorithms.cpp
+	algorithms2.cpp
 	graph.cpp
   paths.cpp
   predecessor_graph.cpp

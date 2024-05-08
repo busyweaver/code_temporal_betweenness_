@@ -117,6 +117,15 @@ double co_first_arrival(Path *m, int t,  const akt::Graph &g)
   return (*m).arrival();
 }
 
+double co_fastest(Path *m, int t,  const akt::Graph &g)
+{
+  if (m == nullptr)
+    return std::numeric_limits<double>::infinity();
+  if ((*m).is_empty())
+    return 0.0;
+  return (*m).arrival() - (*m).departure();
+}
+
 //for active types it is not prefix-optimal
 double co_shortest_foremost(Path *m, int t,  const akt::Graph &g)
 {

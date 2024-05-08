@@ -33,6 +33,8 @@ void display(Path*);
 
 double co_sfp(Path* m, int t, const akt::Graph &g);
 
+double co_fastest(Path* m, int t, const akt::Graph &g);
+
 double co_short(Path *m, int t,  const akt::Graph &g);
 
 double co_first_arrival(Path *m, int t, const akt::Graph &g);

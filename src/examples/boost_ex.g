@@ -4,3 +4,4 @@ b c 4
 d c 3
 c b 4
 c d 5
+c e 6

@@ -162,8 +162,11 @@ void printPred(Predecessor& G, const akt::Graph & g)
 
 }
 
-NetworKit::Graph condensationGraph(Predecessor& G, NetworKit::StronglyConnectedComponents scc)
+
+// creates the graph of strongle connected components of the predecessor's graph
+NetworKit::Graph condensationGraph(Predecessor& G, NetworKit::StronglyConnectedComponents scc, int T)
 {
+
   //  std::cout  <<   "start conden \n" << std::flush;
   const auto partition = scc.getPartition();
   //  std::cout  <<   "1 \n" << std::flush;
@@ -173,68 +176,34 @@ NetworKit::Graph condensationGraph(Predecessor& G, NetworKit::StronglyConnectedC
 
   const auto comp_sizes = scc.getComponentSizes();
   //  std::cout  <<   "3 \n" << std::flush;
-  const auto ids = scc.getPartition().getSubsetIds();
+  const auto ids = partition.getSubsetIds();
+  // for (auto &v : ids)
+  //   {
+  //     for(auto &e : partition.getMembers(v))
+  //       std::cout  << "comp "<< v << ": "<< e <<   " \n" << std::flush;
+  //   }
   //std::set<index> getMembers(index s) const
 
-  std::unordered_set<NetworKit::index> not_visited;
-  for (auto &v : ids)
-    not_visited.insert(v);
-
-  // for (auto &v : comp_sizes)
-  //   {
-  //     if(v.second != 1)
-  //       std::cout  << "sizes "<< v.second <<  " \n" << std::flush;
-  //   }
-
-  //   std::cout  <<   "init conden \n" << std::flush;
+  // go over edges, and whenever end points of edges are in different components add an edge in the condensation graph
   NetworKit::Graph GG = NetworKit::Graph(sizes.size(), false, true, false);
-  //  std::cout << "sizes visited" << not_visited.size() << " \n" << std::flush;
-  while(not_visited.size() > 0)
-    {
-      //  std::cout  <<   "size not visired "<< not_visited.size() <<" \n" << std::flush;
-      auto first_comp = not_visited.begin();
-      auto set_comp =   partition.getMembers(*first_comp);
-      //      std::cout  <<   "size actual comp "<< set_comp.size() <<" \n" << std::flush;
-      auto first_elem = set_comp.begin();
-      NetworKit::BFS bfs(G.g, *first_elem, false, true);
-      bfs.run();
-      std::vector<NetworKit::node> stack = bfs.getNodesSortedByDistance();
-      if(stack.size() > 1)
-        //        std::cout << "   stack size " << stack.size() << " \n" << std::flush;
-      for(NetworKit::node i : stack)
-        {
-          //  std::cout  <<   "   stack " << i << "\n" << std::flush;
-          if( partition.subsetOf(i) !=  partition.subsetOf(*first_elem))
-            {
-              not_visited.erase(partition.subsetOf(i));
-              GG.addEdge(partition.subsetOf(*first_elem),partition.subsetOf(i));
-            }
-        }
-      not_visited.erase(partition.subsetOf(*first_elem));
-    }
+  G.g.forEdges(
+               [&](NetworKit::node x_i, NetworKit::node y_i, NetworKit::edgeid eid)
+               {
+                 // auto x = G.ma_inv[x_i];
+                 // auto y = G.ma_inv[y_i];
+                 // int v = x/T;
+                 // int t = x%T;
+                 // int w = y/T;
+                 // int tp = y%T;
+                 // std::cout << "check part " << x << "=>" << v << "," << t << "to " << y << "=>"  << w << "," << tp  << partition.contains(x_i) << partition.contains(y_i)<< " \n" << std::flush;
+                 if( partition.subsetOf(x_i) !=  partition.subsetOf(y_i))
+                   {
+                     //                     std::cout << "add edge between comps conden graph from " << partition.subsetOf(x_i) << partition.subsetOf(y_i)  << " \n" << std::flush;
+                     GG.addEdge(partition.subsetOf(x_i),partition.subsetOf(y_i));
+                   }
+               });
 
-  // std::set<std::set<NetworKit::index>>::iterator itr;
-  
-  // for (itr = par.begin(); itr != par.end(); itr++)
-  //   {
-  //     std::set<NetworKit::index>::iterator itr2;
-  //     itr2 = (*itr).begin();
-  //     //      std::cout  <<   "start bfs on graph " << *itr2 << "\n" << std::flush;
-  //     NetworKit::BFS bfs(G.g, *itr2, false, true);
-  //     bfs.run();
-  //     //      std::cout  <<   "end bfs on graph \n" << std::flush;
-  //     std::vector<NetworKit::node> stack = bfs.getNodesSortedByDistance();
-  //     for(NetworKit::node i : stack)
-  //       {
-  //         //  std::cout  <<   "   stack " << i << "\n" << std::flush;
-  //         if( partition.subsetOf(i) !=  partition.subsetOf(*itr2))
-  //           {
-  //             GG.addEdge(partition.subsetOf(*itr2),partition.subsetOf(i));
-  //           }
-  //       }
-      //std::cout << "i = " << i << std::endl;
 
-  //  }
   return GG;
 }
 
@@ -280,7 +249,7 @@ void sourcesSinksRemoveISolated(Predecessor& G, const akt::Graph & g)
                    {
                      if( G.g.degreeIn(i) == 0)
                        {
-                         std::cout  <<   "removing \n" << std::flush;  
+                         std::cout  <<   "removing/////////////////////////////// \n" << std::flush;  
                          G.g.removeNode(i);
                        }
                      else
@@ -300,7 +269,7 @@ std::pair<std::unordered_set<int>, std::unordered_set<int>> RemoveInfiniteFromPr
 NetworKit::StronglyConnectedComponents scc(G.g);
   scc.run();
   //  std::cout  <<   "end connected comp \n" << std::flush;
-  NetworKit::Graph cond = condensationGraph(G, scc);
+  NetworKit::Graph cond = condensationGraph(G, scc,g.events.size());
   //  std::cout  <<   "end conden\n" << std::flush;
   std::unordered_set<int> inf_scc;
   const auto  partition = scc.getPartition();
@@ -317,7 +286,10 @@ NetworKit::StronglyConnectedComponents scc(G.g);
     {
       // we keep ids of scc with more than one temporal vertex
       if(it->second > 1)
-        inf_scc.insert(it->first);
+        {
+          inf_scc.insert(it->first);
+        }
+
     }
   //  std::cout << "scc of size > 1   " << inf_scc.size() <<  "\n";
   std::unordered_set<int>::iterator itr;
@@ -327,19 +299,20 @@ NetworKit::StronglyConnectedComponents scc(G.g);
       bfs.run();
       std::vector<NetworKit::node> stack = bfs.getNodesSortedByDistance();
       for(auto &i : stack)
+        {
+          std::cout << "ici" << i <<" \n";
           inf_scc.insert(i);
+        }
     }
   //std::cout  <<   "end bfs on comp \n" << std::flush;
   // std::cout << "trans scc \n";
   std::unordered_set<int > temp_inf;
   for (auto &itr : inf_scc)
     {
-      // std::cout << "comp scc /**/ \n"; 
       const auto elem = partition.getMembers(itr);
       long int T = g.events.size();
       for (auto &itt : elem)
         {
-          //          std::cout << "inf node"<<  G.ma_inv[itt]/T << " " << G.ma_inv[itt]%T<< "\n"; 
           G.g.removeNode(itt);
           temp_inf.insert(G.ma_inv[itt]);
         }
@@ -364,9 +337,7 @@ NetworKit::StronglyConnectedComponents scc(G.g);
       if (G.g.hasNode(G.ma[itt]))
         G.g.removeNode(G.ma[itt]);
     }
-  //  std::cout  <<   "end remove all infinite \n" << std::flush;
   //printPred(G, g);
-  sourcesSinksRemoveISolated(G, g);
   //printPred(G, g);
   return {temp_inf, clos_inf};
 }
