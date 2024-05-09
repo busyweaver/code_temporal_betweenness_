@@ -6,7 +6,7 @@
 
 import operator
 import math
-cost_type = [["shortest","passive"],["shortestfastest","passive"] ]
+cost_type = [["shortest","passive"], ["shortest", "active"],["shortestfastest","passive"],["shortestfastest","active"] ]
 names = [ ["grenoble", False, "crimson","gre"] , ["rennes", False, "green","ren"] , ["belfast", False, "red","bel"], ["kuopio",False, "blue","kuo"], ["primaryschool", False, "brown","prim"], ["highschool_2011",False,"olive","hs11"], ["highschool_2012", False, "pink","hs12"], ["hospital_ward", False, "black","hp"], ["ht09", False, "orange","ht"], ["workplace_2013",False,"purple","wp"] ]
 
 
