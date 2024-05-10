@@ -319,8 +319,11 @@ BenchmarkResults readGraphRunBenchmarks(BenchmarkSettings& bs)
         std::clog << g.M() / 2 << " (unique) edges, ";
     std::clog << g.T() << " (non-empty) timesteps\n";
     BenchmarkResults br;
-    writeNodeIds(ids,bs);
-    writeTimestamps(g.events,bs);
+    if(bs.write)
+      {
+        writeNodeIds(ids,bs);
+        writeTimestamps(g.events,bs); 
+      }
     br = runBenchmarksShort(g, bs);
     br.inputIds = std::move(ids);
     br.n = g.N();
