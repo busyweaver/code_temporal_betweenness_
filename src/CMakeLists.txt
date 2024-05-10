@@ -21,5 +21,5 @@ add_executable(btwBenchmark
 )
 # if networkit is installed on globaly put this
 target_link_libraries(btwBenchmark boost_program_options -lnetworkit -g)
-#target_link_libraries(btwBenchmark boost_program_options -L/home/mehdi/.local/lib/python3.10/site-packages -lnetworkit -g)
-#target_link_libraries(btwBenchmark boost_program_options -L/usr/local/lib -lnetworkit -g)
+#target_link_libraries(btwBenchmark boost_program_options -L/home/naima/include -lnetworkit -g)
+
