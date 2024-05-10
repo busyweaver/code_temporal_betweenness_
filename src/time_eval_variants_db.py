@@ -7,7 +7,8 @@
 import operator
 import math
 cost_type = [["shortest","passive"],["shortestfastest","passive"]]
-names = [ ["bison_dire", True, "crimson","bis"] , ["cattle_dire", True, "green","cat"] , ["employees", False, "red","emp"], ["primate",False, "blue","pri"], ["racoon", False, "brown","rac"], ["sheep_dire",True,"olive","she"], ["weaver", False, "pink","wea"]]
+names = [ ["bison_dire", True, "crimson","bis"] , ["cattle_dire", True, "green","cat"] , ["primate",False, "blue","pri"], ["racoon", False, "brown","rac"], ["sheep_dire",True,"olive","she"], ["weaver", False, "pink","wea"]]
+#names = [["employees", False, "red","emp"], ["voles", False, "black", "vol"]]
 
 
 # In[ ]:
@@ -32,11 +33,20 @@ for e in names:
             if not os.path.isfile(fold+current):
                 st = time.time()
                 if w == "dij":
-                    subprocess.run([path+"btwBenchmark", "-f", path_fold+e[0]+".csv","-c",c[0],"-y",c[1], "-o" ]) 
+                    l = [path+"btwBenchmark", "-f", path_fold+e[0]+".csv","-c",c[0],"-y",c[1], "-o" ]
+                    if e[1] == True:
+                        l.append("-d")
+                    subprocess.run(l) 
                 elif w == "bell":
-                    subprocess.run([path+"btwBenchmark", "-f", path_fold+e[0]+".csv","-c",c[0],"-y",c[1], "-o", "-z" ])
+                    l = [path+"btwBenchmark", "-f", path_fold+e[0]+".csv","-c",c[0],"-y",c[1], "-o", "-z" ]
+                    if e[1] == True:
+                        l.append("-d")
+                    subprocess.run(l)
                 else:
-                    subprocess.run([path+"btwBenchmark", "-f", path_fold+e[0]+".csv","-c",c[0],"-y",c[1], "-b" ]) 
+                    l = [path+"btwBenchmark", "-f", path_fold+e[0]+".csv","-c",c[0],"-y",c[1], "-b" ]
+                    if e[1] == True:
+                        l.append("-d")
+                    subprocess.run(l) 
                 ed = time.time()
                 tot = (ed - st)
                 d[e[0]][tuple(c)][w] = tot
