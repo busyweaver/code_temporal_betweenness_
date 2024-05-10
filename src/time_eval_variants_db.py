@@ -6,8 +6,8 @@
 
 import operator
 import math
-cost_type = [["shortest","passive"],["shortestfastest","passive"], ["shortest","active"],["shortestfastest","active"] ]
-names = [ ["grenoble", False, "crimson","gre"] , ["rennes", False, "green","ren"] , ["belfast", False, "red","bel"], ["kuopio",False, "blue","kuo"], ["primaryschool", False, "brown","prim"], ["highschool_2011",False,"olive","hs11"], ["highschool_2012", False, "pink","hs12"], ["hospital_ward", False, "black","hp"], ["ht09", False, "orange","ht"], ["workplace_2013",False,"purple","wp"] ]
+cost_type = [["shortest","passive"],["shortestfastest","passive"]]
+names = [ ["bison_dire", True, "crimson","bis"] , ["cattle_dire", True, "green","cat"] , ["employees", False, "red","emp"], ["primate",False, "blue","pri"], ["racoon", False, "brown","rac"], ["sheep_dire",True,"olive","she"], ["weaver", False, "pink","wea"]]
 
 
 # In[ ]:
@@ -17,11 +17,11 @@ import subprocess
 import time
 from pathlib import Path
 import os
-fold ="time_computation" 
+fold ="time_computation/" 
 Path(fold).mkdir(parents=True, exist_ok=True)
 which=["dij", "bell", "bfs"]
 path = "../build.build/"
-path_fold = "examples/"
+path_fold = "databases/"
 names.reverse()
 d = { e[0] : { tuple(c):{ w:0 for w in which  }  for c in cost_type  }  for e in names   }
 for e in names:
