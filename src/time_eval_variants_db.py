@@ -30,7 +30,7 @@ for e in names:
     for w in which:
         for c in cost_type:
             current = e[0]+"_"+c[0]+"_"+c[1]+"_"+w
-            if not os.path.isfile(fold+current):
+            if not os.path.isfile(current):
                 st = time.time()
                 if w == "dij":
                     l = [path+"btwBenchmark", "-f", path_fold+e[0]+".csv","-c",c[0],"-y",c[1], "-o" ]
