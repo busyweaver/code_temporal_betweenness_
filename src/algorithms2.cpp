@@ -1128,7 +1128,7 @@ namespace akt {
           sampled.insert(s);
         }
       //    for (int s = 0; s < g.N(); ++s) {
-      printf("v %d / %d \n",s,g.N()-1);
+      //printf("v %d / %d \n",s,g.N()-1);
       //      display_tot(sbd);
       std::vector<long int> vis;
       if(!bellman)
