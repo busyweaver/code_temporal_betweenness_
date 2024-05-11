@@ -261,7 +261,7 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
                       file.open (bs.filename+"_"+bs.cost+"_"+bs.type+"_dij");
                   }
                 file << time.count();
-                file.close()
+                file.close();
                 std::cout << "time elapsed : "  << time.count() << "\n";
 
                 // run test if needed, to automatically check values, only ran if program with option -t
