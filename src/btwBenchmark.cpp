@@ -250,6 +250,17 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
                 std::cout << "end calcul "<< "\n" << std::flush;
                 std::chrono::duration<double> time = end - start;
                 res.optimalTime[stri+"_"+st.first+"_"+st.second] = time.count();
+                std::ofstream file;
+                if (bs.runBoost)
+                  file.open (bs.filename+"_"+bs.cost+"_"+bs.type+"_bfs");
+                else
+                  {
+                    if(bs.runBellman)
+                      file.open (bs.filename+"_"+bs.cost+"_"+bs.type+"_bell");
+                    else
+                      file.open (bs.filename+"_"+bs.cost+"_"+bs.type+"_dij");
+                  }
+                file << time.count();
                 std::cout << "time elapsed : "  << time.count() << "\n";
 
                 // run test if needed, to automatically check values, only ran if program with option -t

@@ -50,8 +50,8 @@ for e in names:
                 ed = time.time()
                 tot = (ed - st)
                 d[e[0]][tuple(c)][w] = tot
-                with open(fold+current,"w") as f:
-                    f.write(str(tot))
+                #with open(fold+current,"w") as f:
+                #    f.write(str(tot))
             else:
                 print("already here")
 

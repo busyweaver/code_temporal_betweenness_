@@ -380,7 +380,7 @@ for (int i = 0; i < sbd.cur_best.size(); i++)
 
 
 
-void optimal_initialization(const akt::Graph& g, int s, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), fibonacci_heap<node, boost::heap::compare<compare_node>> &q, std::vector<long int> &visited)
+void dijkstra_initialization(const akt::Graph& g, int s, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), fibonacci_heap<node, boost::heap::compare<compare_node>> &q, std::vector<long int> &visited)
 {
   int T = g.events.size();
   for (int t = g.minimalTimestep(); (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[s][t].nextTimestep) {
@@ -615,9 +615,86 @@ std::vector<long int>  BF(const akt::Graph& g, int s, OptimalBetweennessData& sb
 
   return visited;
 }
-
-
 /* ************************* end bellman-ford non-optimal **************************  */
+
+
+
+/* ************************* start BFS  **************************  */
+void BFS(const akt::Graph& g, int s, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), bool (*cmp)(double, double), std::string& walk_type)
+{
+  int T = g.events.size();
+  std::queue<int>* q = new queue<int>();
+  std::queue<int>* qp = new queue<int>();
+  // int l = 0;
+
+  // initialization step
+  for (int t = g.minimalTimestep(); (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[s][t].nextTimestep) {
+    if (g.adjacencyList()[s][t].neighbours.size() > 0)
+      {
+        //        Path* pp = new Path(nullptr, s, g.events[t]);
+        sbd.opt_walk[s][t] = nullptr;
+        sbd.cur_best[s][t] = 0;
+        sbd.pre[s][t].insert(VertexAppearance{ s, -1 });
+        sbd.optimalNode[s] = 0.0;
+        sbd.sigmadot[s][t] = 1;
+        (*q).push(s*T + t);
+      }
+    sbd.totalSigma[s] = 1;
+  }
+  // end initialization step
+  while ((*q).size() > 0 ) {
+    while((*q).size() > 0){
+      auto elem = (*q).front();
+      (*q).pop();
+      auto curv = elem / T;
+      auto curtime = elem % T;
+      sbd.visited.push_back(curv*T + curtime);
+      for (int t = curtime; (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[curv][t].nextTimestep) {
+        for (auto w : g.adjacencyList()[curv][t].neighbours) {
+          if((! (curv == s && t != curtime)) ){
+            auto m = sbd.opt_walk[curv][curtime];
+            auto mp = new Path(m,w,g.events[t]);
+            auto cnew = cost(mp, g.events[t], g);
+            if (sbd.cur_best[w][t] == std::numeric_limits<double>::infinity() || sbd.pre[w][t].size() == 0 ){
+              sbd.cur_best[w][t] = cnew;
+              sbd.opt_walk[w][t] = mp;
+              if (cnew < sbd.optimalNode[w])
+                sbd.optimalNode[w] = cnew;
+              (*qp).push(w*T + t);
+              if (walk_type == "active")
+                {
+                  for (int tpp = t; (tpp >= 0) && (tpp <= g.maximalTimestep()); tpp = g.adjacencyList()[w][tpp].nextTimestep_inv) {
+                    auto cnew = cost(sbd.opt_walk[w][t], g.events[tpp], g);
+                    if (sbd.cur_best[w][tpp] > cnew){
+                      sbd.visited.push_back(w*T + tpp);
+                      //sbd.pre[w][tpp].clear();
+                      sbd.cur_best[w][tpp] = cnew;
+                    }
+                  }
+                }
+            }
+                  else
+                    delete mp;
+
+            if (sbd.cur_best[w][t] == cnew){
+              sbd.pre[w][t].insert(VertexAppearance{curv,curtime});
+            }
+          }
+        }
+      }
+    }
+    auto tmp = q;
+    q = qp;
+    qp = tmp;
+    //l = l + 1;
+  }
+  delete q;
+  delete qp;
+}
+
+
+
+/* ************************* end BFS  **************************  */
 
 std::vector<long int>  dijkstra(const akt::Graph& g, int s, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), bool (*cmp)(double, double), std::string walk_type)
 {
@@ -626,7 +703,7 @@ std::vector<long int>  dijkstra(const akt::Graph& g, int s, OptimalBetweennessDa
   map<pair<double,std::pair<int,int>>,fibonacci_heap<node, compare<compare_node>>::handle_type> ma;
   fibonacci_heap<node, boost::heap::compare<compare_node>> q;
   std::vector<long int> visited;
-  optimal_initialization(g, s, sbd, cost, q, visited);
+  dijkstra_initialization(g, s, sbd, cost, q, visited);
   //printf("normalement boucle après init %ld,\n",q.size());
   int j = 0;
   while (!q.empty()) {
