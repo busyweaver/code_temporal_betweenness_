@@ -20,15 +20,15 @@ from pathlib import Path
 import os
 fold ="time_computation/" 
 Path(fold).mkdir(parents=True, exist_ok=True)
-which=["dij", "bell", "bfs"]
+which=["dij", "bfs", "bell"]
 path = "../build.build/"
 path_fold = "databases/"
 names.reverse()
 d = { e[0] : { tuple(c):{ w:0 for w in which  }  for c in cost_type  }  for e in names   }
 for e in names:
     print(e)
-    for c in cost_type:    
-        for w in which:
+    for w in which:
+        for c in cost_type:
             current = e[0]+"_"+c[0]+"_"+c[1]+"_"+w
             if not os.path.isfile(fold+current):
                 st = time.time()
