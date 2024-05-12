@@ -391,11 +391,12 @@ void dijkstra_initialization(const akt::Graph& g, int s, OptimalBetweennessData&
       sbd.opt_walk[s][t] = pp;
       sbd.cur_best[s][t] = cost(sbd.opt_walk[s][t], g.events[t], g);
       sbd.pre[s][t].insert(VertexAppearance{ s, -1 });
-      //add to visited since not added to heap
+      //add to visited since not added to heap, update : not sur the following line is needed
       visited.push_back(s*T + t);
       q.push(node({ 0.0 , {s,t}  }));
       }
     }
+  sbd.optimalNode[s] = 0.0;
 
 }
 
@@ -487,25 +488,29 @@ void relax(int a, int b, int t, int tp, OptimalBetweennessData& sbd, fibonacci_h
             p2.second = p_tmp2;
             //printf("optimal\n");
             if (ma.count(p2) == 1 ){
+              // in reality we decrease 
               q.increase(ma[p2], p);
-                display(tmp);
-                display(mp);
-                std::cout <<"old " << cold << " " << p.first << " " << p.second.first << " " << p.second.second  << "DECREASE.................. \n"; 
+              //display(tmp);
+              //display(mp);
+              //std::cout <<"old " << cold << " " << p.first << " " << p.second.first << " " << p.second.second  << "DECREASE.................. \n"; 
               }
             else{
               q.push(node(p));
               }
             if (cnew < sbd.optimalNode[b])
-              sbd.optimalNode[b] = cnew;
+              {
+                sbd.optimalNode[b] = cnew;
+              }
+
           }
   else
     delete mp;
   if (cnew == sbd.cur_best[b][tp] and cnew != std::numeric_limits<double>::infinity())
     {
       sbd.pre[b][tp].insert(VertexAppearance{a,t});
-      sbd.sigmadot[b][tp] += sbd.sigmadot[a][t];
-      if(cnew == sbd.optimalNode[b])
-        sbd.totalSigma[b] = sbd.totalSigma[b] + sbd.sigmadot[a][t];
+      // sbd.sigmadot[b][tp] += sbd.sigmadot[a][t];
+      // if(cnew == sbd.optimalNode[b])
+      //   sbd.totalSigma[b] = sbd.totalSigma[b] + sbd.sigmadot[a][t];
     }
   //printf("fin\n");
 
@@ -522,7 +527,7 @@ void relax_resting_bf(int b, int t, int tp, OptimalBetweennessData& sbd, bool (*
     sbd.pre[b][tp].clear();
     sbd.cur_best[b][tp] = cnew;
     sbd.opt_walk[b][tp] = sbd.opt_walk[b][t];
-
+    
   }
 }
 
@@ -572,10 +577,11 @@ void relax_bf(int a, int b, int t, int tp, OptimalBetweennessData& sbd, bool (*c
     delete mp;
   if (cnew == sbd.cur_best[b][tp] and cnew != std::numeric_limits<double>::infinity())
     {
+
       sbd.pre[b][tp].insert(VertexAppearance{a,t});
-      sbd.sigmadot[b][tp] += sbd.sigmadot[a][t];
-      if(cnew == sbd.optimalNode[b])
-        sbd.totalSigma[b] = sbd.totalSigma[b] + sbd.sigmadot[a][t];
+      // sbd.sigmadot[b][tp] += sbd.sigmadot[a][t];
+      // if(cnew == sbd.optimalNode[b])
+      //   sbd.totalSigma[b] = sbd.totalSigma[b] + sbd.sigmadot[a][t];
     }
 
 }
@@ -594,10 +600,10 @@ std::vector<long int>  BF(const akt::Graph& g, int s, OptimalBetweennessData& sb
         sbd.opt_walk[s][t] = pp;
         sbd.cur_best[s][t] = cost(sbd.opt_walk[s][t], g.events[t], g);
         sbd.pre[s][t].insert(VertexAppearance{ s, -1 });
-        //add to visited since not added to heap
         visited.push_back(s*T + t);
       }
   }
+  sbd.optimalNode[s] = 0.0;
   //rest of the algorithm
   for(int i = 0; i < g.N()*g.T(); i++)
     {
@@ -620,11 +626,12 @@ std::vector<long int>  BF(const akt::Graph& g, int s, OptimalBetweennessData& sb
 
 
 /* ************************* start BFS  **************************  */
-void BFS(const akt::Graph& g, int s, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), bool (*cmp)(double, double), std::string& walk_type)
+std::vector<long int> BFS(const akt::Graph& g, int s, OptimalBetweennessData& sbd, double (*cost)(Path*, int, const akt::Graph&), bool (*cmp)(double, double), std::string& walk_type)
 {
   int T = g.events.size();
   std::queue<int>* q = new queue<int>();
   std::queue<int>* qp = new queue<int>();
+  std::vector<long int> visited;
   // int l = 0;
 
   // initialization step
@@ -633,14 +640,16 @@ void BFS(const akt::Graph& g, int s, OptimalBetweennessData& sbd, double (*cost)
       {
         //        Path* pp = new Path(nullptr, s, g.events[t]);
         sbd.opt_walk[s][t] = nullptr;
-        sbd.cur_best[s][t] = 0;
+        sbd.cur_best[s][t] = 0.0;
         sbd.pre[s][t].insert(VertexAppearance{ s, -1 });
-        sbd.optimalNode[s] = 0.0;
-        sbd.sigmadot[s][t] = 1;
+        visited.push_back(s*T + t);
+
+        //sbd.sigmadot[s][t] = 1;
         (*q).push(s*T + t);
       }
-    sbd.totalSigma[s] = 1;
+    // sbd.totalSigma[s] = 1;
   }
+  sbd.optimalNode[s] = 0.0;
   // end initialization step
   while ((*q).size() > 0 ) {
     while((*q).size() > 0){
@@ -648,7 +657,7 @@ void BFS(const akt::Graph& g, int s, OptimalBetweennessData& sbd, double (*cost)
       (*q).pop();
       auto curv = elem / T;
       auto curtime = elem % T;
-      sbd.visited.push_back(curv*T + curtime);
+      visited.push_back(curv*T + curtime);
       for (int t = curtime; (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[curv][t].nextTimestep) {
         for (auto w : g.adjacencyList()[curv][t].neighbours) {
           if((! (curv == s && t != curtime)) ){
@@ -678,6 +687,9 @@ void BFS(const akt::Graph& g, int s, OptimalBetweennessData& sbd, double (*cost)
 
             if (sbd.cur_best[w][t] == cnew){
               sbd.pre[w][t].insert(VertexAppearance{curv,curtime});
+              // sbd.sigmadot[w][t] += sbd.sigmadot[curv][curtime];
+              // if(cnew == sbd.optimalNode[w])
+              //   sbd.totalSigma[w] = sbd.totalSigma[w] + sbd.sigmadot[curv][curtime];
             }
           }
         }
@@ -690,6 +702,7 @@ void BFS(const akt::Graph& g, int s, OptimalBetweennessData& sbd, double (*cost)
   }
   delete q;
   delete qp;
+  return visited;
 }
 
 
@@ -713,10 +726,6 @@ std::vector<long int>  dijkstra(const akt::Graph& g, int s, OptimalBetweennessDa
     ma.erase(min_elem.id);
     VertexAppearance cur = pair_to_vertexappearance(min_elem.id);
     visited.push_back(cur.v*T + cur.time);
-    //std::cout << "******** heap min " << min_elem.id.first << "  (" << min_elem.id.second.first << ", " << min_elem.id.second.second << ")\n";
-    //    printf("vertex %d time %d\n",cur.v,cur.time);
-    //printf("*************************************value %lg\n", min_elem.first);
-    // Go over all neighbours of the current vertex appearance
     if(cur.v != s && walk_type == "active")
       {
         for (int t = cur.time; (t >= 0) && (t <= g.maximalTimestep()); t = g.adjacencyList()[cur.v][t].nextTimestep_inv) {
@@ -731,6 +740,7 @@ std::vector<long int>  dijkstra(const akt::Graph& g, int s, OptimalBetweennessDa
       for (auto w : g.adjacencyList()[cur.v][t].neighbours) {
         //std::cout << "nei time " << t << "w" << w << "\n";
         if((! (cur.v == s && t != cur.time)) ){
+          // next condition could be removed
           if((cur.v == s || t >= (cur.time)) ){
             //std::cout << "nei time " << t << "cur.v " << cur.v << "cur.t " << cur.time << "w "<< w<<  "\n"    ;
             relax(cur.v,w,cur.time,t,sbd,q,ma,cmp,cost,g);
@@ -1080,7 +1090,7 @@ namespace akt {
   }
 
   // Computes the betweenness measures
-  std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>>, std::vector<double> > optimalBetweenness(const Graph& g, bool strict, std::string cost, std::string cmp, std::string walk_type, int numberNodes, bool bellman, bool no_loop)
+  std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>>, std::vector<double> > optimalBetweenness(const Graph& g, bool strict, std::string cost, std::string cmp, std::string walk_type, int numberNodes, bool bellman, bool bfs, bool no_loop)
   {
     double (*cost2)(Path*, int, const akt::Graph&);
     bool (*cmp2)(double, double);
@@ -1110,14 +1120,24 @@ namespace akt {
     std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
     std::uniform_int_distribution<> distrib(0, g.N()-1);
     int i = 0;
+
     if(bellman)
       {
+        //run Bellman-Ford
         std::cout << "Bellman-Ford version! \n";
+      }
+    else if(bfs)
+      {
+        //run bfs
+        std::cout << "BFS version! \n";
       }
     else
       {
+        //run Dijkstra
         std::cout << "Dijkstra version! \n";
       }
+
+
     std::cout << "pred has no loops speed up ? " << no_loop << " *0 means no 1 means yes*\n";
     while(i < g.N() && i != numberNodes){
       if(numberNodes != -1)
@@ -1128,21 +1148,26 @@ namespace akt {
           sampled.insert(s);
         }
       //    for (int s = 0; s < g.N(); ++s) {
-      //printf("v %d / %d \n",s,g.N()-1);
-      //      display_tot(sbd);
+      printf("********************************* v %d / %d \n",s,g.N()-1);
+      //display_tot(sbd);
       std::vector<long int> vis;
-      if(!bellman)
-        {
-          //run Dijkstra
-          vis = dijkstra(g, s, sbd, cost2, cmp2, walk_type); 
-        }
-      else
+      if(bellman)
         {
           //run Bellman-Ford
           vis = BF(g, s, sbd, cost2, cmp2, walk_type);
         }
+      else if(bfs)
+        {
+          //run bfs
+          vis = BFS(g, s, sbd, cost2, cmp2, walk_type);
+        }
+      else
+        {
+          //run Dijkstra
+          vis = dijkstra(g, s, sbd, cost2, cmp2, walk_type); 
+        }
 
-      //display_tot(sbd);
+      // display_tot(sbd);
       auto vis2 = optimalUpdateBetweenness(s, g, sbd, cost2, cmp2, walk_type, no_loop);
       // display_tot(sbd);
       if (walk_type == "active")
@@ -1165,7 +1190,7 @@ namespace akt {
   // computes the betweenness centrality on shortest paths variants
   std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>> , std::vector<double> > optimalBetweennessBoost(const Graph& g, bool strict, std::string cost, std::string walk_type, int numberNodes, int percentTime)
   {
-    std::cout << "BFS version! \n";
+    std::cout << "Boost version! \n";
     double untilTime;
     if(percentTime == -1)
       untilTime = std::numeric_limits<double>::infinity();

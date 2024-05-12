@@ -35,6 +35,7 @@ struct BenchmarkSettings
   std::string percentTime;
   bool runNonStrict = false;
   bool runBoost = false;
+  bool runBFS = false;
   bool runNoLoop = false;
   bool runBellman = false;
   bool edgesDirected = false;
@@ -178,11 +179,36 @@ void writeToFile(const akt::Graph& g, BenchmarkSettings& bs, std::string s, std:
 }
 
 // check the values of B(v) with the algorithm of Buss et al. on shortest and shortest foremost paths
+bool check_all(std::vector<std::vector<double>> &x, std::vector<std::vector<double>> &y)
+{
+  bool res = true;
+  for(int i = 0; i < x.size() ; i++)
+    {
+      for(int j = 0; j < x[i].size() ; j++)
+        { 
+      if( abs(x[i][j] - y[i][j]) > 0.01)
+        res  = false;
+        }
+    }
+
+  if(!res)
+    {
+      for(int i = 0; i < x.size() ; i ++)
+        {
+          for(int j = 0; j < x[i].size() ; j++)
+            { 
+              std::cout<< "i,j " << i << " " << j << " "  << x[i][j] << " " << y[i][j] << "\n";
+            }
+        }
+    }
+  return res;
+}
+
 bool check(std::vector<double> &x, std::vector<double> &y)
 {
   bool res = true;
   for(int i = 0; i < x.size() ; i ++)
-    if( abs(x[i] - y[i]) > 0.1)
+    if( abs(x[i] - y[i]) > 0.01)
       res  = false;
   if(!res)
     {
@@ -234,7 +260,7 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
                 if(bs.runBoost)
                   y = optimalBetweennessBoost(g, str_bool, st.first, st.second, stoi(bs.numberNodes), stoi(bs.percentTime));
                 else
-                  y = optimalBetweenness(g, str_bool, st.first, "le", st.second, stoi(bs.numberNodes), bs.runBellman, bs.runNoLoop);
+                  y = optimalBetweenness(g, str_bool, st.first, "le", st.second, stoi(bs.numberNodes), bs.runBellman, bs.runBFS, bs.runNoLoop);
                 auto end = std::chrono::high_resolution_clock::now();
                 std::pair< std::vector<std::vector<double>>, std::vector<std::vector<double>> > x;
                 std::vector<std::vector<double>> bet;
@@ -267,6 +293,16 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
                 // run test if needed, to automatically check values, only ran if program with option -t
                 if(bs.runTest && ((st.first == "shortest" && st.second== "passive")  || (st.first == "shortestforemost" && st.second== "passive")) ){
                   std::cout << "START TEST \n";
+
+
+                  y = optimalBetweenness(g, str_bool, st.first, "le", st.second, stoi(bs.numberNodes), false, false, bs.runNoLoop);
+                  std::pair< std::vector<std::vector<double>>, std::vector<std::vector<double>> > x;
+                  std::vector<std::vector<double>> bet;
+                  std::vector<std::vector<double>> bet2;
+                  std::vector<std::vector<double>> bet_ex;
+                  std::vector<double> bet_sum;
+                  std::tie (bet, bet_ex, bet_sum) = y;
+
                   auto start = std::chrono::high_resolution_clock::now();
                   auto p = shortestBetweenness(g, str_bool);
                   auto end = std::chrono::high_resolution_clock::now();
@@ -278,6 +314,18 @@ BenchmarkResults runBenchmarksShort(const akt::Graph& g, BenchmarkSettings& bs)
                     test = check(p.first, bet_sum);
                   else
                     test = check(p.second, bet_sum);
+
+
+                  y = optimalBetweenness(g, str_bool, st.first, "le", st.second, stoi(bs.numberNodes), true, false, bs.runNoLoop);
+                  std::tie (bet2, bet_ex, bet_sum) = y;
+
+                  test = check_all(bet,bet2);
+
+                  y = optimalBetweenness(g, str_bool, st.first, "le", st.second, stoi(bs.numberNodes), false, true, bs.runNoLoop);
+                  std::tie (bet2, bet_ex, bet_sum) = y;
+
+                  test = check_all(bet,bet2);
+
                   if(!test){
                     std::cout << "probleme test";
                     //exit(-1);
@@ -371,6 +419,7 @@ int main (int argc, char** argv)
     ("noloop,o", "if predecessor never makes loop, activate to speed up computation")
     ("bellman-ford,z", "run bellman-ford variant betweenness algorithm")
     ("boost,b", "run the accelerated version of shortest")
+    ("bfs,x", "run the generic BFS")
     ("cost,c", po::value<std::string>(&(bs.cost)),  "Cost function")
     ("type,y",po::value<std::string>(&(bs.type)), "type active/passive")
     //    ("all,a", "run the active version on all temporal nodes, if not set run it only on vertex appearances")
@@ -389,6 +438,7 @@ int main (int argc, char** argv)
   bs.runNoLoop = vm.count("noloop") > 0;
   bs.write = vm.count("write") > 0;
   bs.runBoost = vm.count("boost") > 0;
+  bs.runBFS = vm.count("bfs") > 0;
   bs.runTest = vm.count("test") > 0;
   bs.originalNodeIds = vm.count("originalNodeIds") > 0;
     try {
