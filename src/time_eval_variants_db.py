@@ -7,8 +7,7 @@
 import operator
 import math
 cost_type = [["shortest","passive"],["shortestfastest","passive"]]
-names = [ ["bison_dire", True, "crimson","bis"] , ["cattle_dire", True, "green","cat"] , ["primate",False, "blue","pri"], ["racoon", False, "brown","rac"], ["sheep_dire",True,"olive","she"], ["weaver", False, "pink","wea"]]
-#names = [["employees", False, "red","emp"], ["voles", False, "black", "vol"]]
+names = [ ["dblp", False, "crimson","dbl"]  , ["primate",False, "blue","pri"], ["racoon", False, "brown","rac"], ["weaver", False, "pink","wea"], ["employees", False, "red","emp"], ["voles", False, "black", "vol"], ["workplace_2013", False, "green", "wp" ] ]
 
 
 # In[ ]:
