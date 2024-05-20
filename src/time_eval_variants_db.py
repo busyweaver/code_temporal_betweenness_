@@ -32,17 +32,17 @@ for e in names:
             if not os.path.isfile(current):
                 st = time.time()
                 if w == "dij":
-                    l = ["timeout", "2h",  path+"btwBenchmark", "-f", path_fold+e[0]+".csv","-c",c[0],"-y",c[1], "-o" ]
+                    l = ["timeout", "3h",  path+"btwBenchmark", "-f", path_fold+e[0]+".csv","-c",c[0],"-y",c[1], "-o" ]
                     if e[1] == True:
                         l.append("-d")
                     subprocess.run(l) 
                 elif w == "bell":
-                    l = ["timeout", "2h",  path+"btwBenchmark", "-f", path_fold+e[0]+".csv","-c",c[0],"-y",c[1], "-o", "-z" ]
+                    l = ["timeout", "3h",  path+"btwBenchmark", "-f", path_fold+e[0]+".csv","-c",c[0],"-y",c[1], "-o", "-z" ]
                     if e[1] == True:
                         l.append("-d")
                     subprocess.run(l)
                 else:
-                    l = ["timeout", "2h",  path+"btwBenchmark", "-f", path_fold+e[0]+".csv","-c",c[0],"-y",c[1], "-b" ]
+                    l = ["timeout", "3h",  path+"btwBenchmark", "-f", path_fold+e[0]+".csv","-c",c[0],"-y",c[1], "-b" ]
                     if e[1] == True:
                         l.append("-d")
                     subprocess.run(l) 
